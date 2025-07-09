@@ -17,6 +17,8 @@ public class Tarefa {
     this.titulo = titulo;
     this.descricao = descricao;
     this.criador = criador;
+    this.prioridade = "Baixa";
+    this.prazo = null;
     this.concluida = false;
   }
 
