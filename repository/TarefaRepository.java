@@ -31,6 +31,18 @@ public class TarefaRepository {
     return resultado;
   }
 
+  public void listarTarefas(){
+      if(tarefas.isEmpty()){
+          System.out.println("Nenhuma tarefa cadastrada.");
+      } else {
+          System.out.println("--- Lista de tarefas ---");
+          for (Tarefa t : tarefas) {
+              t.exibirTarefa();
+              System.out.println("--------------------");
+            }
+        }
+    }
+
    public boolean atualizarTarefa(Tarefa tarefaAtualizada) {
         for (int i = 0; i < tarefas.size(); i++) {
             if (tarefas.get(i).getID().equals(tarefaAtualizada.getID())) {
@@ -43,6 +55,8 @@ public class TarefaRepository {
 
   public boolean remover(String id) {
         return tarefas.removeIf(c -> c.getID().equals(id));
-    }
+  }
+
+
 
 }
