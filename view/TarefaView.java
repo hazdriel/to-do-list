@@ -2,7 +2,6 @@ package view;
 
 import model.Tarefa;
 import java.util.List;
-import java.time.format.DateTimeFormatter;
 
 public class TarefaView {
 
