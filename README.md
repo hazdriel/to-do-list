@@ -44,7 +44,7 @@ To-do-list/
 ### 💡 Observações
 
 - Para testar, use o login: `teste@teste.com` e senha: `teste`
-- O projeto não utiliza banco de dados — os dados são mantidos em memória durante a execução.
+- O projeto não utiliza banco de dados, os dados são mantidos em memória durante a execução.
 
 ---
 
