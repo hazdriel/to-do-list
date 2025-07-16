@@ -1,0 +1,11 @@
+*.class
+/bin/
+/build/
+/out/
+*.log
+*.tmp
+*.swp
+.DS_Store
+*.iml
+.idea/
+.vscode/
