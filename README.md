@@ -50,4 +50,4 @@ To-do-list/
 
 ### 📌 Autores
 
-- **Carlos Lucas Feitoza, Carlos Gabryel, Laura Vitória Mendes**
+- **Carlos Lucas Feitoza**, **Carlos Gabryel** e **Laura Vitória Mendes**
