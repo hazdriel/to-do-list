@@ -9,40 +9,41 @@ public class Tarefa {
   private String descricao;
   private Usuario criador;
   private boolean concluida;
-  private String prioridade;
+  private Prioridade prioridade;
   private LocalDate prazo;
+  private LocalDate dataCriacao = LocalDate.now();
 
   public Tarefa(String titulo, String descricao, Usuario criador) {
     this.id = String.format("%02d", contador++);
     this.titulo = titulo;
     this.descricao = descricao;
     this.criador = criador;
-    this.prioridade = "Baixa";
+    this.prioridade = Prioridade.BAIXA;
     this.prazo = null;
     this.concluida = false;
   }
 
-  public void isConcluida() {
+  public void concluirTarefa() {
     this.concluida = true;
   }
-
-  public void exibirTarefa() {
-    System.out.println("ID: " + id);
-    System.out.println("Título: " + titulo);
-    System.out.println("Descrição: " + descricao);
-    System.out.println("Criador: " + (criador != null ? criador.getNome() : "N/A"));
-    System.out.println("Concluída: " + (concluida ? "Sim" : "Não"));
-    System.out.println("Prioridade: " + (prioridade != null ? prioridade : "N/A"));
-    System.out.println("Prazo: " + (prazo != null ? prazo.toString() : "N/A"));
-    System.out.println("Atrasada: " + (isAtrasada() ? "Sim" : "Não"));
-  }
-
 
   public boolean isAtrasada() {
     if (prazo == null || concluida) {
       return false;
     }
     return LocalDate.now().isAfter(prazo);
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "ID: %s | Título: %s | Concluída: %s | Prioridade: %s | Prazo: %s",
+        id,
+        titulo,
+        concluida ? "Sim" : "Não",
+        prioridade,
+        prazo != null ? prazo : "N/A"
+    );
   }
 
    public String getID() {
@@ -69,15 +70,15 @@ public class Tarefa {
     return criador;
   }
 
-  public boolean getConcluida() {
+  public boolean isConcluida() {
     return concluida;
   }
 
-  public String getPrioridade() {
+  public Prioridade getPrioridade() {
     return prioridade;
   }
 
-  public void setPrioridade(String prioridade) {
+  public void setPrioridade(Prioridade prioridade) {
     this.prioridade = prioridade;
   }
 

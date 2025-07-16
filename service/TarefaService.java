@@ -1,112 +1,124 @@
 package service;
 
-import model.Tarefa;
-import model.Usuario;
+import model.*;
 import repository.*;
 
 import java.util.List;
-import java.util.Scanner;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 
 public class TarefaService {
-  private Scanner sc;
   private TarefaRepository repositorioTarefas;
-  private UsuarioRespository repositorioUsuarios;
-  private Usuario usuarioLogado;
+  private UsuarioRepository repositorioUsuarios;
+  private SessaoService sessao;
 
-  public TarefaService(Scanner sc, TarefaRepository repositorioTarefas, UsuarioRespository repositorioUsuarios) {
-    this.sc = sc;
+  public TarefaService(TarefaRepository repositorioTarefas, UsuarioRepository repositorioUsuarios, SessaoService sessao) {
     this.repositorioUsuarios = repositorioUsuarios;
     this.repositorioTarefas = repositorioTarefas;
+    this.sessao = sessao;
   }
 
-  public void criarTarefa() {
-    
-    if (usuarioLogado == null) {
-      System.out.println("Nenhum usuário logado. Faça login antes de criar uma tarefa.");
-      return;
-    }
-
-    System.out.println("Insira o título da tarefa: ");
-    String titulo = sc.nextLine();
-    if (titulo.trim().isEmpty()) {
+  public void criarTarefa(String titulo, String descricao, Prioridade prioridade, LocalDate prazo) {
+    if (titulo == null || titulo.trim().isEmpty()) {
       System.out.println("O título não pode ser vazio.");
       return;
     }
 
-    System.out.println("Agora descreva sua tarefa (max 200 caracteres): ");
-    String descricao = sc.nextLine();
-    if (descricao.trim().isEmpty()) {
+    if (descricao == null || descricao.trim().isEmpty()) {
       System.out.println("A descrição não pode ser vazia.");
       return;
     }
 
-    Tarefa novaTarefa = new Tarefa(titulo, descricao, usuarioLogado);
+    Tarefa novaTarefa = new Tarefa(titulo, descricao, sessao.getUsuarioLogado());
+    novaTarefa.setPrioridade(prioridade != null ? prioridade : Prioridade.BAIXA);
+    novaTarefa.setPrazo(prazo);
 
-    novaTarefa.setPrazo(definirPrazo());
-    novaTarefa.setPrioridade(definirPrioridade());
-
-    repositorioTarefas.inserirTarefas(novaTarefa);
+    repositorioTarefas.inserirTarefa(novaTarefa);
     System.out.println("Tarefa criada com sucesso!");
   }
 
-  private LocalDate definirPrazo() {
-    System.out.println("Deseja informar um prazo para esta tarefa? Digite 1 para sim e 2 para não");
-    int opcao = sc.nextInt();
-    sc.nextLine();
-
-    if (opcao == 1) {
-      System.out.println("Digite o prazo da tarefa (ex: 2025-12-31): ");
-      String entrada = sc.nextLine();
-      try {
-        return LocalDate.parse(entrada);
-      } catch (DateTimeParseException e) {
-        System.out.println("Formato de data inválido. A tarefa será criada sem prazo.");
-      }
-    }
-    return null;
+  public List<Tarefa> listarTarefas() {
+    Usuario usuario = sessao.getUsuarioLogado();
+    return repositorioTarefas.listarTarefasPorUsuario(usuario);
   }
 
-  private String definirPrioridade() {
-    System.out.println("Deseja informar uma prioridade para esta tarefa? Digite 1 para sim e 2 para não (padrão: Baixa)");
-    int opcao = sc.nextInt();
-    sc.nextLine();
-
-    if (opcao == 1) {
-      while (true) {
-        System.out.println("Escolha a prioridade:\n1 - Alta\n2 - Média\n3 - Baixa");
-        String entrada = sc.nextLine();
-        switch (entrada) {
-          case "1":
-            return "Alta";
-          case "2":
-            return "Média";
-          case "3":
-            return "Baixa";
-          default:
-            System.out.println("Opção inválida. Tente novamente.");
-        }
-      }
-    }
-    return "Baixa";
+  public List<Tarefa> listarPorPrioridade(Prioridade prioridade) {
+    Usuario usuario = sessao.getUsuarioLogado();
+    return repositorioTarefas.buscarPorPrioridade(usuario, prioridade);
   }
 
-  /* 
-  public void solicitarUsuario() {
-    System.out.println("===================================");
-    System.out.println("   LOGIN DO CLIENTE - To-do-List     ");
-    System.out.println("===================================");
+  public List<Tarefa> listarConcluidas() {
+    Usuario usuario = sessao.getUsuarioLogado();
+    return repositorioTarefas.buscarConcluidas(usuario);
+  }
 
-    System.out.print("Seja bem-vindo ao To-do-List!");
-    System.out.print("Informe seu e-mail (usuário teste: teste@todolist.com): ");
-    String email = sc.nextLine();
-    Usuario usuario = repositorioUsuarios.buscarPorEmail(email);
-    if (usuario == null) {
-      System.out.println("Cliente não encontrado. Verifique o CPF e tente novamente.");
-    } else {
-      usuarioLogado = usuario;
-      System.out.println("Login realizado com sucesso. Bem-vindo, " + usuarioLogado.getNome() + "!");
+  public List<Tarefa> listarPendentes() {
+    Usuario usuario = sessao.getUsuarioLogado();
+    return repositorioTarefas.buscarPendentes(usuario);
+  }
+
+  public List<Tarefa> listarAtrasadas() {
+    Usuario usuario = sessao.getUsuarioLogado();
+    return repositorioTarefas.buscarAtrasadas(usuario);
+  }
+
+  private Tarefa validarTarefaDoUsuario(String id) {
+    Tarefa tarefa = repositorioTarefas.buscarTarefaPorID(id);
+
+    if (tarefa == null) {
+        System.out.println("Tarefa não encontrada.");
+        return null;
     }
-  } */
+
+    if (!tarefa.getCriador().equals(sessao.getUsuarioLogado())) {
+        System.out.println("Você não tem permissão para acessar esta tarefa.");
+        return null;
+    }
+
+    return tarefa;
+  }
+
+  public Tarefa buscarTarefaPorId(String id) {
+    return validarTarefaDoUsuario(id);
+  }
+
+  public boolean removerTarefa(String id) {
+    Tarefa tarefa = validarTarefaDoUsuario(id);
+    if (tarefa == null) return false;
+
+    repositorioTarefas.remover(id);
+    return true;
+  }
+
+  public boolean concluirTarefa(String id) {
+    Tarefa tarefa = validarTarefaDoUsuario(id);
+    if (tarefa == null) return false;
+
+    tarefa.concluirTarefa();
+    return true;
+  }
+
+  public boolean atualizarTarefa(String id, String novoTitulo, String novaDescricao, Prioridade novaPrioridade, LocalDate novoPrazo) {
+    Tarefa tarefa = validarTarefaDoUsuario(id);
+    if (tarefa == null) return false;
+
+    if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {
+        tarefa.setTitulo(novoTitulo);
+    }
+
+    if (novaDescricao != null && !novaDescricao.trim().isEmpty()) {
+        tarefa.setDescricao(novaDescricao);
+    }
+
+    if (novaPrioridade != null) {
+        tarefa.setPrioridade(novaPrioridade);
+    }
+
+    if (novoPrazo != null) {
+        tarefa.setPrazo(novoPrazo);
+    }
+
+    System.out.println("Tarefa atualizada com sucesso!");
+    repositorioTarefas.atualizarTarefa(tarefa);
+    return true;
+  }
 }

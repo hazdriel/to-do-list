@@ -2,61 +2,82 @@ package repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
-import model.Tarefa;
+import model.*;
+
 
 public class TarefaRepository {
-  private ArrayList<Tarefa> tarefas = new ArrayList<>();
+  private Map<String, Tarefa> tarefas = new HashMap<>();
 
-  public void inserirTarefas(Tarefa tarefa) {
-    tarefas.add(tarefa);
+  public void inserirTarefa(Tarefa tarefa) {
+    tarefas.put(tarefa.getID(), tarefa);
   }
 
   public Tarefa buscarTarefaPorID(String id) {
-    for (Tarefa tarefa : tarefas) {
-      if (tarefa.getID().equals(id)) {
-        return tarefa;
-      }
-    }
-    return null;
+    return tarefas.get(id);
   }
 
-  public List<Tarefa> buscarTarefasPorUsuario(String nome) {
-    List<Tarefa> resultado = new ArrayList<>(); 
-    for (Tarefa tarefa : tarefas) {
-      if (tarefa.getCriador().getNome().equals(nome)) {
+  public List<Tarefa> listarTarefasPorUsuario(Usuario usuario) {
+    List<Tarefa> resultado = new ArrayList<>();
+    for (Tarefa tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario)) {
         resultado.add(tarefa);
       }
     }
     return resultado;
   }
 
-  public void listarTarefas(){
-      if(tarefas.isEmpty()){
-          System.out.println("Nenhuma tarefa cadastrada.");
-      } else {
-          System.out.println("--- Lista de tarefas ---");
-          for (Tarefa t : tarefas) {
-              t.exibirTarefa();
-              System.out.println("--------------------");
-            }
-        }
+  public boolean atualizarTarefa(Tarefa tarefaAtualizada) {
+    if (tarefas.containsKey(tarefaAtualizada.getID())) {
+      tarefas.put(tarefaAtualizada.getID(), tarefaAtualizada);
+      return true;
     }
-
-   public boolean atualizarTarefa(Tarefa tarefaAtualizada) {
-        for (int i = 0; i < tarefas.size(); i++) {
-            if (tarefas.get(i).getID().equals(tarefaAtualizada.getID())) {
-                tarefas.set(i, tarefaAtualizada);
-                return true;
-            }
-        }
-        return false;
-    }
-
-  public boolean remover(String id) {
-        return tarefas.removeIf(c -> c.getID().equals(id));
+    return false;
   }
 
+  public boolean remover(String id) {
+    return tarefas.remove(id) != null;
+  }
 
+  public List<Tarefa> buscarPorPrioridade(Usuario usuario, Prioridade prioridade) {
+    List<Tarefa> resultado = new ArrayList<>();
+    for (Tarefa tarefa : tarefas.values()) {
+        if (tarefa.getCriador().equals(usuario) && tarefa.getPrioridade() == prioridade) {
+            resultado.add(tarefa);
+        }
+    }
+    return resultado;
+  }
 
+  public List<Tarefa> buscarConcluidas(Usuario usuario) {
+    List<Tarefa> resultado = new ArrayList<>();
+    for (Tarefa tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.isConcluida()) {
+        resultado.add(tarefa);
+      }
+    }
+    return resultado;
+  }
+
+   public List<Tarefa> buscarPendentes(Usuario usuario) {
+    List<Tarefa> resultado = new ArrayList<>();
+    for (Tarefa tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && !tarefa.isConcluida()) {
+        resultado.add(tarefa);
+      }
+    }
+    return resultado;
+  }
+
+  public List<Tarefa> buscarAtrasadas(Usuario usuario) {
+    List<Tarefa> resultado = new ArrayList<>();
+    for (Tarefa tarefa : tarefas.values()) {
+        if (tarefa.getCriador().equals(usuario) && tarefa.isAtrasada()) {
+            resultado.add(tarefa);
+        }
+    }
+    return resultado;
+}
 }

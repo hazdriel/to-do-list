@@ -2,37 +2,35 @@ package repository;
 
 import model.Usuario;
 
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 public class UsuarioRepository {
 
-    private ArrayList<Usuario> usuarios = new ArrayList<>();
+    private Map<String, Usuario> usuarios = new HashMap<>();
 
-    public void inserirUsuarios(Usuario usuario) {
-        usuarios.add(usuario);
-    }
-
-    public Usuario buscarUsuarios(String email) {
-        for (Usuario usuario : usuarios) {
-            if (usuario.getEmail().equals(email)) {
-                return usuario;
-            }
+    public boolean inserirUsuario(Usuario usuario) {
+        if (usuarios.containsKey(usuario.getEmail())) {
+            return false;
         }
-        return null;
+        usuarios.put(usuario.getEmail(), usuario);
+        return true;
     }
 
-    public boolean atualizarUsuarios(Usuario usuarioAtualizado) {
-        for (int i = 0; i < usuarios.size(); i++) {
-            if (usuarios.get(i).getEmail().equals(usuarioAtualizado.getEmail())) {
-                usuarios.set(i, usuarioAtualizado);
-                return true;
-            }
+    public Usuario buscarUsuario(String email) {
+        return usuarios.get(email);
+    }
+
+    public boolean atualizarUsuario(Usuario usuarioAtualizado) {
+        if (usuarios.containsKey(usuarioAtualizado.getEmail())) {
+            usuarios.put(usuarioAtualizado.getEmail(), usuarioAtualizado);
+            return true;
         }
         return false;
     }
 
-    public boolean removerUsuarios(String email) {
-        return usuarios.removeIf(c -> c.getEmail().equals(email));
+    public boolean removerUsuario(String email) {
+        return usuarios.remove(email) != null;
     }
 
 }
