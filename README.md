@@ -48,15 +48,6 @@ To-do-list/
 
 ---
 
-### 🛠️ Tecnologias Utilizadas
-
-- Java 17+
-- Terminal / Console
-- Git & GitHub
-- VSCode ou IntelliJ
-
----
-
 ### 📌 Autores
 
 - **Carlos Lucas Feitoza, Carlos Gabryel, Laura Vitória Mendes**
