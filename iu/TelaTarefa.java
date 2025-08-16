@@ -1,11 +1,12 @@
-package view;
+package iu;
 
-import model.Tarefa;
 import java.util.List;
 
-public class TarefaView {
+import negocio.entidade.TarefaAntiga;
 
-    public static void exibirDetalhada(Tarefa t) {
+public class TelaTarefa {
+
+    public static void exibirDetalhada(TarefaAntiga t) {
         System.out.println("ID: " + t.getID());
         System.out.println("Título: " + t.getTitulo());
         System.out.println("Descrição: " + t.getDescricao());
@@ -16,7 +17,7 @@ public class TarefaView {
         System.out.println("Atrasada: " + (t.isAtrasada() ? "Sim" : "Não"));
     }
 
-    public static void exibirResumo(Tarefa t) {
+    public static void exibirResumo(TarefaAntiga t) {
         System.out.printf("(%s) %s [%s] %s\n",
             t.getID(),
             t.getTitulo(),
@@ -25,27 +26,27 @@ public class TarefaView {
         );
     }
 
-    public static void exibirLista(List<Tarefa> tarefas) {
+    public static void exibirLista(List<TarefaAntiga> tarefas) {
         if (tarefas == null || tarefas.isEmpty()) {
             System.out.println("Nenhuma tarefa encontrada.");
             return;
         }
 
         System.out.println("=== SUAS TAREFAS ===");
-        for (Tarefa t : tarefas) {
+        for (TarefaAntiga t : tarefas) {
             exibirResumo(t);
             System.out.println("----------------------------");
         }
     }
 
-     public static void exibirListaAtrasadas(List<Tarefa> tarefas) {
+     public static void exibirListaAtrasadas(List<TarefaAntiga> tarefas) {
         if (tarefas == null || tarefas.isEmpty()) {
             System.out.println("Nenhuma tarefa atrasada encontrada.");
             return;
         }
 
         System.out.println("=== TAREFAS ATRASADAS ===");
-        for (Tarefa t : tarefas) {
+        for (TarefaAntiga t : tarefas) {
             exibirResumo(t);
             if (t.getPrazo() != null) {
                 long diasAtraso = java.time.temporal.ChronoUnit.DAYS.between(t.getPrazo(), java.time.LocalDate.now());

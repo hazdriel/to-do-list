@@ -1,7 +1,8 @@
-package model;
+package negocio.entidade;
 
 public enum Prioridade {
     BAIXA,
     MEDIA,
-    ALTA
+    ALTA,
+    URGENTE
 }

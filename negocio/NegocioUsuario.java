@@ -1,13 +1,13 @@
-package service;
+package negocio;
 
-import repository.UsuarioRepository;
-import model.Usuario;
+import dados.RepositorioUsuarios;
+import negocio.entidade.Usuario;
 
-public class UsuarioService {
-  private UsuarioRepository repositorio;
-  private SessaoService sessao;
+public class NegocioUsuario {
+  private RepositorioUsuarios repositorio;
+  private NegocioSessao sessao;
 
-  public UsuarioService(UsuarioRepository repositorio, SessaoService sessao) {
+  public NegocioUsuario(RepositorioUsuarios repositorio, NegocioSessao sessao) {
     this.repositorio = repositorio;
     this.sessao = sessao;
   }

@@ -1,21 +1,22 @@
-package view;
+package iu;
 
-import model.Tarefa;
-import model.Prioridade;
-import service.SessaoService;
-import service.TarefaService;
-import service.UsuarioService;
+import negocio.NegocioSessao;
+import negocio.NegocioTarefa;
+import negocio.NegocioUsuario;
+import negocio.entidade.Prioridade;
+import negocio.entidade.TarefaAntiga;
+
 import java.util.Scanner;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
-public class Menu {
+public class TelaMenu {
     Scanner sc = new Scanner(System.in);
-    private UsuarioService usuarioService;
-    private TarefaService tarefaService;
-    private SessaoService sessao;
+    private NegocioUsuario usuarioService;
+    private NegocioTarefa tarefaService;
+    private NegocioSessao sessao;
 
-    public Menu(TarefaService tarefaService, UsuarioService usuarioService, SessaoService sessao) {
+    public TelaMenu(NegocioTarefa tarefaService, NegocioUsuario usuarioService, NegocioSessao sessao) {
         this.tarefaService = tarefaService;
         this.usuarioService = usuarioService;
         this.sessao = sessao;
@@ -148,26 +149,26 @@ public class Menu {
 
             switch (subOpcao) {
                 case 1 -> 
-                    TarefaView.exibirLista(tarefaService.listarTarefas());
+                    TelaTarefa.exibirLista(tarefaService.listarTarefas());
                 case 2 -> {
                     System.out.print("Informe a prioridade (BAIXA, MEDIA, ALTA): ");
                     String nivel = sc.nextLine().toUpperCase();
                     try {
                         Prioridade p = Prioridade.valueOf(nivel);
-                        TarefaView.exibirLista(tarefaService.listarPorPrioridade(p));
+                        TelaTarefa.exibirLista(tarefaService.listarPorPrioridade(p));
                     } catch (IllegalArgumentException e) {
                         System.out.println("Prioridade inválida.");
                     }
                 }
-                case 3 -> TarefaView.exibirLista(tarefaService.listarConcluidas());
-                case 4 -> TarefaView.exibirLista(tarefaService.listarPendentes());
-                case 5 -> TarefaView.exibirListaAtrasadas(tarefaService.listarAtrasadas());
+                case 3 -> TelaTarefa.exibirLista(tarefaService.listarConcluidas());
+                case 4 -> TelaTarefa.exibirLista(tarefaService.listarPendentes());
+                case 5 -> TelaTarefa.exibirListaAtrasadas(tarefaService.listarAtrasadas());
                 case 6 -> {
                     System.out.print("-> ID da tarefa: ");
                     String id = sc.nextLine();
-                    Tarefa t = tarefaService.buscarTarefaPorId(id);
+                    TarefaAntiga t = tarefaService.buscarTarefaPorId(id);
                     if (t != null) {
-                        TarefaView.exibirDetalhada(t);
+                        TelaTarefa.exibirDetalhada(t);
                     } else {
                         System.out.println("Tarefa não encontrada.");
                     }
@@ -181,7 +182,7 @@ public class Menu {
     private void menuAtualizarTarefa() {
         System.out.print("-> ID da tarefa: ");
         String id = sc.nextLine();
-        Tarefa tarefa = tarefaService.buscarTarefaPorId(id);
+        TarefaAntiga tarefa = tarefaService.buscarTarefaPorId(id);
 
         if (tarefa == null) {
             System.out.println("Tarefa não encontrada.");

@@ -1,8 +1,8 @@
-package service;
+package negocio;
 
-import model.Usuario;
+import negocio.entidade.Usuario;
 
-public class SessaoService {
+public class NegocioSessao {
     private Usuario usuarioLogado;
 
     public Usuario getUsuarioLogado() {

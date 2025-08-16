@@ -1,11 +1,12 @@
-package repository;
-
-import model.Usuario;
+package dados;
 
 import java.util.Map;
+
+import negocio.entidade.Usuario;
+
 import java.util.HashMap;
 
-public class UsuarioRepository {
+public class RepositorioUsuarios {
 
     private Map<String, Usuario> usuarios = new HashMap<>();
 

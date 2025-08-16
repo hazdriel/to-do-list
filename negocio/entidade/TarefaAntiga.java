@@ -1,8 +1,8 @@
-package model;
+package negocio.entidade;
 
 import java.time.LocalDate;
 
-public class Tarefa {
+public class TarefaAntiga {
   private static int contador = 1;
   private String id;
   private String titulo;
@@ -13,7 +13,7 @@ public class Tarefa {
   private LocalDate prazo;
   private LocalDate dataCriacao = LocalDate.now();
 
-  public Tarefa(String titulo, String descricao, Usuario criador) {
+  public TarefaAntiga(String titulo, String descricao, Usuario criador) {
     this.id = String.format("%02d", contador++);
     this.titulo = titulo;
     this.descricao = descricao;
