@@ -3,8 +3,11 @@ package iu;
 import negocio.NegocioSessao;
 import negocio.NegocioTarefa;
 import negocio.NegocioUsuario;
+import negocio.entidade.Categoria;
 import negocio.entidade.Prioridade;
 import negocio.entidade.TarefaAntiga;
+import negocio.excecao.tarefa.*;
+import negocio.excecao.usuario.*;
 
 import java.util.Scanner;
 import java.time.format.DateTimeFormatter;
@@ -41,8 +44,16 @@ public class TelaMenu {
                     String email = sc.nextLine();
                     System.out.print("Informe a senha: ");
                     String senha = sc.nextLine();
-                    if (usuarioService.autenticar(email, senha)) {
-                        return;
+                    try {
+                        if (usuarioService.autenticar(email, senha)) {
+                            return;
+                        }
+                    } catch (UsuarioNaoEncontradoException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (SenhaIncorretaException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
                     }
                 }
                 case 2 -> {
@@ -52,19 +63,41 @@ public class TelaMenu {
                     String email = sc.nextLine();
                     System.out.print("Informe uma senha: ");
                     String senha = sc.nextLine();
-                    usuarioService.cadastrarUsuario(nome, email, senha);
+                    try {
+                        usuarioService.cadastrarUsuario(nome, email, senha);
+                    } catch (UsuarioExistenteException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (NomeVazioException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (NomeApenasLetrasException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (NomeTamanhoInvalidoException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (EmailVazioException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (EmailFormatoInvalidoException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    } catch (SenhaTamanhoInvalidoException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                    }
                 }
                 default -> System.out.println("Opção inválida.");
             }
         } while (!sessao.estaLogado());
     }
 
-    public void mostrarMenu(){
-
+    public void mostrarMenu()  {
         if (!sessao.estaLogado()) {
             solicitarUsuario();
         }
-        
+
         int opcao;
         do {
             System.out.println("------ MENU TO-DO LIST ------");
@@ -99,37 +132,63 @@ public class TelaMenu {
     }
 
     private void menuCriarTarefa() {
-        System.out.print("Título da tarefa: ");
-        String titulo = sc.nextLine();
-        System.out.print("Descrição da tarefa: ");
-        String descricao = sc.nextLine();
+        try {
+            System.out.println("=== CRIAR NOVA TAREFA ===");
 
-        System.out.print("Deseja definir prioridade? (s/n): ");
-        String respPrioridade = sc.nextLine();
-        Prioridade prioridade = null;
-        if (respPrioridade.equalsIgnoreCase("s")) {
-            System.out.print("Prioridade (BAIXA, MEDIA, ALTA): ");
-            String nivel = sc.nextLine().toUpperCase();
-            prioridade = Prioridade.valueOf(nivel);
-        }
+            System.out.print("Título da tarefa: ");
+            String titulo = sc.nextLine();
 
-        System.out.print("Deseja definir prazo? (s/n): ");
-        String respPrazo = sc.nextLine();
-        java.time.LocalDate prazo = null;
-        if (respPrazo.equalsIgnoreCase("s")) {
-            while (prazo == null) {
-                System.out.print("Prazo (dd/mm/aaaa): ");
-                String entrada = sc.nextLine();
+            System.out.print("Descrição da tarefa: ");
+            String descricao = sc.nextLine();
+
+            System.out.print("Categoria da tarefa: ");
+            String categoriaInput = sc.nextLine();
+            Categoria categoria = new Categoria(categoriaInput);
+
+            Prioridade prioridade = null;
+            System.out.print("Deseja definir prioridade? (s/n): ");
+            String respPrioridade = sc.nextLine();
+            if (respPrioridade.equalsIgnoreCase("s")) {
+                System.out.print("Prioridade (BAIXA, MEDIA, ALTA): ");
+                String nivel = sc.nextLine().toUpperCase();
                 try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    prazo = java.time.LocalDate.parse(entrada, formatter);
-                } catch (DateTimeParseException e) {
-                    System.out.println("Formato de data inválido. Tente novamente.");
+                    prioridade = Prioridade.valueOf(nivel);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Prioridade inválida. Usando prioridade BAIXA como padrão.");
+                    prioridade = Prioridade.BAIXA;
                 }
             }
-        }
 
-        tarefaService.criarTarefa(titulo, descricao, prioridade, prazo);
+            java.time.LocalDate prazo = null;
+            System.out.print("Deseja definir prazo? (s/n): ");
+            String respPrazo = sc.nextLine();
+            if (respPrazo.equalsIgnoreCase("s")) {
+                System.out.print("Prazo (dd/mm/aaaa): ");
+                String entrada = sc.nextLine();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                prazo = java.time.LocalDate.parse(entrada, formatter);
+            }
+
+            tarefaService.criarTarefa(titulo, descricao, prioridade, prazo, categoria);
+            System.out.println("Tarefa criada com sucesso!");
+
+        } catch (DateTimeParseException e) {
+            System.out.println("Formato de data inválido. Por favor, use a formatação dd/mm/aaaa.");
+            System.out.println("Reiniciando criação de tarefa...");
+            menuCriarTarefa();
+        } catch (CategoriaVaziaException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando criação de tarefa...");
+            menuCriarTarefa();
+        } catch (TituloVazioException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando criação de tarefa...");
+            menuCriarTarefa();
+        } catch (PrazoInvalidoException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando criação de tarefa...");
+            menuCriarTarefa();
+        }
     }
 
     private void menuListarTarefas() {
@@ -148,16 +207,18 @@ public class TelaMenu {
             sc.nextLine();
 
             switch (subOpcao) {
-                case 1 -> 
-                    TelaTarefa.exibirLista(tarefaService.listarTarefas());
+                case 1 ->
+                        TelaTarefa.exibirLista(tarefaService.listarTarefas());
                 case 2 -> {
                     System.out.print("Informe a prioridade (BAIXA, MEDIA, ALTA): ");
-                    String nivel = sc.nextLine().toUpperCase();
+                    String prioridadeInput = sc.nextLine().trim().toUpperCase();
                     try {
-                        Prioridade p = Prioridade.valueOf(nivel);
+                        Prioridade p = Prioridade.valueOf(prioridadeInput);
                         TelaTarefa.exibirLista(tarefaService.listarPorPrioridade(p));
                     } catch (IllegalArgumentException e) {
-                        System.out.println("Prioridade inválida.");
+                        System.out.println("Prioridade inválida. Use: BAIXA, MEDIA ou ALTA");
+                    } catch (Exception e) {
+                        System.out.println("Erro ao buscar tarefas por prioridade: " + e.getMessage());
                     }
                 }
                 case 3 -> TelaTarefa.exibirLista(tarefaService.listarConcluidas());
@@ -166,7 +227,18 @@ public class TelaMenu {
                 case 6 -> {
                     System.out.print("-> ID da tarefa: ");
                     String id = sc.nextLine();
-                    TarefaAntiga t = tarefaService.buscarTarefaPorId(id);
+                    TarefaAntiga t = null;
+                    try {
+                        t = tarefaService.buscarTarefaPorId(id);
+                    } catch (TarefaIDNaoPertece e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                        continue;
+                    } catch (TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
+                        System.out.println("Reiniciando...");
+                        continue;
+                    }
                     if (t != null) {
                         TelaTarefa.exibirDetalhada(t);
                     } else {
@@ -182,11 +254,16 @@ public class TelaMenu {
     private void menuAtualizarTarefa() {
         System.out.print("-> ID da tarefa: ");
         String id = sc.nextLine();
-        TarefaAntiga tarefa = tarefaService.buscarTarefaPorId(id);
+        TarefaAntiga tarefa = null;
 
-        if (tarefa == null) {
-            System.out.println("Tarefa não encontrada.");
-            return;
+        while (tarefa == null) {
+            try {
+                tarefa = tarefaService.buscarTarefaPorId(id);
+            } catch (TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                System.out.println(e.getMessage());
+                System.out.print("Informe um ID válido: ");
+                id = sc.nextLine();
+            }
         }
 
         int editar;
@@ -194,8 +271,9 @@ public class TelaMenu {
             System.out.println("=== Editar Tarefa ===");
             System.out.println("1 -> Título");
             System.out.println("2 -> Descrição");
-            System.out.println("3 -> Prioridade");
-            System.out.println("4 -> Prazo");
+            System.out.println("3 -> Categoria");
+            System.out.println("4 -> Prioridade");
+            System.out.println("5 -> Prazo");
             System.out.println("0 -> Voltar");
             System.out.print("Opção: ");
             editar = sc.nextInt();
@@ -203,33 +281,81 @@ public class TelaMenu {
 
             switch (editar) {
                 case 1 -> {
-                    System.out.print("Novo título: ");
+                    System.out.print("Novo título (deixe em branco para manter atual): ");
                     String novoTitulo = sc.nextLine();
-                    tarefaService.atualizarTarefa(id, novoTitulo, null, null, null);
+                    if (novoTitulo.isBlank()) novoTitulo = null;
+                    try {
+                        tarefaService.atualizarTarefa(id, novoTitulo, null, null, null, null);
+                    } catch (TituloVazioException | CategoriaVaziaException | PrazoInvalidoException |
+                             TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
                 case 2 -> {
-                    System.out.print("Nova descrição: ");
+                    System.out.print("Nova descrição (deixe em branco para manter atual): ");
                     String novaDescricao = sc.nextLine();
-                    tarefaService.atualizarTarefa(id, null, novaDescricao, null, null);
+                    if (novaDescricao.isBlank()) novaDescricao = null;
+                    try {
+                        tarefaService.atualizarTarefa(id, null, novaDescricao, null, null, null);
+                    } catch (TituloVazioException | CategoriaVaziaException | PrazoInvalidoException |
+                             TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
                 case 3 -> {
-                    System.out.print("Nova prioridade (BAIXA, MEDIA, ALTA): ");
-                    String nivel = sc.nextLine().toUpperCase();
+                    Categoria novaCategoria = null;
+                    while (novaCategoria == null) {
+                        System.out.print("Nova categoria (deixe em branco para manter atual): ");
+                        String catInput = sc.nextLine();
+                        if (catInput.isBlank()) break;
+                        try {
+                            novaCategoria = new Categoria(catInput);
+                        } catch (CategoriaVaziaException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
                     try {
-                        Prioridade nova = Prioridade.valueOf(nivel);
-                        tarefaService.atualizarTarefa(id, null, null, nova, null);
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("Prioridade inválida.");
+                        tarefaService.atualizarTarefa(id, null, null, novaCategoria, null, null);
+                    } catch (TituloVazioException | CategoriaVaziaException | PrazoInvalidoException |
+                             TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 4 -> {
-                    System.out.print("Novo prazo (dd/mm/aaaa): ");
+                    System.out.print("Nova prioridade (BAIXA, MEDIA, ALTA, deixe em branco para manter atual): ");
+                    String nivel = sc.nextLine().toUpperCase();
+                    Prioridade novaPrioridade = null;
+                    if (!nivel.isBlank()) {
+                        try {
+                            novaPrioridade = Prioridade.valueOf(nivel);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Prioridade inválida. Mantendo valor atual.");
+                        }
+                    }
                     try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                        java.time.LocalDate novoPrazo = java.time.LocalDate.parse(sc.nextLine(), formatter);
-                        tarefaService.atualizarTarefa(id, null, null, null, novoPrazo);
-                    } catch (DateTimeParseException e) {
-                        System.out.println("Data inválida.");
+                        tarefaService.atualizarTarefa(id, null, null, null, novaPrioridade, null);
+                    } catch (TituloVazioException | CategoriaVaziaException | PrazoInvalidoException |
+                             TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Novo prazo (dd/MM/yyyy, deixe em branco para manter atual): ");
+                    String entrada = sc.nextLine();
+                    java.time.LocalDate novoPrazo = null;
+                    if (!entrada.isBlank()) {
+                        try {
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                            novoPrazo = java.time.LocalDate.parse(entrada, formatter);
+                        } catch (DateTimeParseException e) {
+                            System.out.println("Formato de data inválido. Mantendo valor atual.");
+                        }
+                    }
+                    try {
+                        tarefaService.atualizarTarefa(id, null, null, null, null, novoPrazo);
+                    } catch (TituloVazioException | CategoriaVaziaException | PrazoInvalidoException |
+                             TarefaIDNaoPertece | TarefaIDNaoEncontradaException e) {
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 0 -> System.out.println("Voltando...");
@@ -241,7 +367,20 @@ public class TelaMenu {
     private void menuConcluirTarefa() {
         System.out.print("-> ID da tarefa a concluir: ");
         String idConclusao = sc.nextLine();
-        boolean concluida = tarefaService.concluirTarefa(idConclusao);
+        boolean concluida = false;
+        try {
+            concluida = tarefaService.concluirTarefa(idConclusao);
+        } catch (TarefaIDNaoPertece e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando...");
+            menuConcluirTarefa();
+            return;
+        } catch (TarefaIDNaoEncontradaException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando...");
+            menuConcluirTarefa();
+            return;
+        }
         if (concluida) {
             System.out.println("Tarefa concluída com sucesso!");
         } else {
@@ -252,11 +391,22 @@ public class TelaMenu {
     private void menuRemoverTarefa() {
         System.out.print("-> ID da tarefa a remover: ");
         String idRemocao = sc.nextLine();
-        boolean removida = tarefaService.removerTarefa(idRemocao);
+        boolean removida = false;
+        try {
+            removida = tarefaService.removerTarefa(idRemocao);
+        } catch (TarefaIDNaoPertece e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando...");
+            menuRemoverTarefa();
+            return;
+        } catch (TarefaIDNaoEncontradaException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Reiniciando...");
+            menuRemoverTarefa();
+            return;
+        }
         if (removida) {
             System.out.println("Tarefa removida com sucesso!");
-        } else {
-            System.out.println("Não foi possível remover a tarefa. Verifique se o ID está correto e se você tem permissão.");
         }
     }
 

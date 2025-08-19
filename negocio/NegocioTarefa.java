@@ -1,12 +1,11 @@
 package negocio;
 
-import dados.*;
-
 import java.util.List;
 
 import dados.RepositorioTarefas;
 import dados.RepositorioUsuarios;
 import negocio.entidade.*;
+import negocio.excecao.tarefa.*;
 
 import java.time.LocalDate;
 
@@ -21,23 +20,14 @@ public class NegocioTarefa {
     this.sessao = sessao;
   }
 
-  public void criarTarefa(String titulo, String descricao, Prioridade prioridade, LocalDate prazo) {
-    if (titulo == null || titulo.trim().isEmpty()) {
-      System.out.println("O título não pode ser vazio.");
-      return;
-    }
+  public void criarTarefa(String titulo, String descricao, Prioridade prioridade, LocalDate prazo, Categoria categoria) throws TituloVazioException, CategoriaVaziaException, PrazoInvalidoException {
+    Usuario criador = sessao.getUsuarioLogado();
 
-    if (descricao == null || descricao.trim().isEmpty()) {
-      System.out.println("A descrição não pode ser vazia.");
-      return;
-    }
-
-    TarefaAntiga novaTarefa = new TarefaAntiga(titulo, descricao, sessao.getUsuarioLogado());
-    novaTarefa.setPrioridade(prioridade != null ? prioridade : Prioridade.BAIXA);
-    novaTarefa.setPrazo(prazo);
+    Tarefa.validarTitulo(titulo);
+    Tarefa.validarCategoria(categoria);
+    TarefaAntiga novaTarefa = new TarefaAntiga(titulo, descricao, prazo, prioridade, categoria, criador);
 
     repositorioTarefas.inserirTarefa(novaTarefa);
-    System.out.println("Tarefa criada com sucesso!");
   }
 
   public List<TarefaAntiga> listarTarefas() {
@@ -65,64 +55,59 @@ public class NegocioTarefa {
     return repositorioTarefas.buscarAtrasadas(usuario);
   }
 
-  private TarefaAntiga validarTarefaDoUsuario(String id) {
+  private TarefaAntiga validarTarefaDoUsuarioID(String id) throws TarefaIDNaoEncontradaException, TarefaIDNaoPertece {
     TarefaAntiga tarefa = repositorioTarefas.buscarTarefaPorID(id);
-
     if (tarefa == null) {
-        System.out.println("Tarefa não encontrada.");
-        return null;
+        throw new TarefaIDNaoEncontradaException(id);
     }
 
     if (!tarefa.getCriador().equals(sessao.getUsuarioLogado())) {
-        System.out.println("Você não tem permissão para acessar esta tarefa.");
-        return null;
+        throw new TarefaIDNaoPertece(id);
+    }
+    return tarefa;
+  }
+
+  public TarefaAntiga buscarTarefaPorId(String id) throws TarefaIDNaoPertece, TarefaIDNaoEncontradaException {
+    return validarTarefaDoUsuarioID(id);
+  }
+
+  private TarefaAntiga validarTarefaDoUsuarioTitulo(String titulo) throws TarefaTituloNaoEncontradaException {
+    TarefaAntiga tarefa = repositorioTarefas.buscarTarefaPorTitulo(titulo);
+    if (tarefa == null) {
+      throw new TarefaTituloNaoEncontradaException(titulo);
     }
 
     return tarefa;
   }
 
-  public TarefaAntiga buscarTarefaPorId(String id) {
-    return validarTarefaDoUsuario(id);
+  public TarefaAntiga buscarTarefaPorTitulo(String id) throws TarefaTituloNaoEncontradaException {
+    return validarTarefaDoUsuarioTitulo(id);
   }
 
-  public boolean removerTarefa(String id) {
-    TarefaAntiga tarefa = validarTarefaDoUsuario(id);
-    if (tarefa == null) return false;
-
+  public boolean removerTarefa(String id) throws TarefaIDNaoPertece, TarefaIDNaoEncontradaException {
+    TarefaAntiga tarefa = validarTarefaDoUsuarioID(id);
     repositorioTarefas.remover(id);
     return true;
   }
 
-  public boolean concluirTarefa(String id) {
-    TarefaAntiga tarefa = validarTarefaDoUsuario(id);
-    if (tarefa == null) return false;
-
+  public boolean concluirTarefa(String id) throws TarefaIDNaoPertece, TarefaIDNaoEncontradaException {
+    TarefaAntiga tarefa = validarTarefaDoUsuarioID(id);
     tarefa.concluirTarefa();
     return true;
   }
 
-  public boolean atualizarTarefa(String id, String novoTitulo, String novaDescricao, Prioridade novaPrioridade, LocalDate novoPrazo) {
-    TarefaAntiga tarefa = validarTarefaDoUsuario(id);
-    if (tarefa == null) return false;
+  public boolean atualizarTarefa(String id, String novoTitulo, String novaDescricao, Categoria novaCategoria, Prioridade novaPrioridade, LocalDate novoPrazo)
+          throws TarefaIDNaoPertece, TarefaIDNaoEncontradaException, TituloVazioException, CategoriaVaziaException, PrazoInvalidoException {
+    TarefaAntiga tarefa = validarTarefaDoUsuarioID(id);
 
-    if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {
-        tarefa.setTitulo(novoTitulo);
-    }
+    if (novoTitulo != null) tarefa.setTitulo(novoTitulo);
+    if (novaDescricao != null) tarefa.setDescricao(novaDescricao);
+    if (novaCategoria != null) tarefa.setCategoria(novaCategoria);
+    if (novaPrioridade != null) tarefa.setPrioridade(novaPrioridade);
+    if (novoPrazo != null) tarefa.setPrazo(novoPrazo);
 
-    if (novaDescricao != null && !novaDescricao.trim().isEmpty()) {
-        tarefa.setDescricao(novaDescricao);
-    }
-
-    if (novaPrioridade != null) {
-        tarefa.setPrioridade(novaPrioridade);
-    }
-
-    if (novoPrazo != null) {
-        tarefa.setPrazo(novoPrazo);
-    }
-
-    System.out.println("Tarefa atualizada com sucesso!");
     repositorioTarefas.atualizarTarefa(tarefa);
     return true;
   }
+
 }

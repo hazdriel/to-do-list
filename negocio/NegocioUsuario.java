@@ -3,28 +3,29 @@ package negocio;
 import dados.RepositorioUsuarios;
 import negocio.entidade.Usuario;
 
+import negocio.excecao.usuario.*;
+
 public class NegocioUsuario {
   private RepositorioUsuarios repositorio;
   private NegocioSessao sessao;
+
 
   public NegocioUsuario(RepositorioUsuarios repositorio, NegocioSessao sessao) {
     this.repositorio = repositorio;
     this.sessao = sessao;
   }
 
-  public boolean autenticar(String email, String senha) {
+  public boolean autenticar(String email, String senha) throws UsuarioNaoEncontradoException, SenhaIncorretaException {
     Usuario usuario = repositorio.buscarUsuario(email);
 
     if (usuario == null) {
-      System.out.println("Usuário não encontrado.");
-      return false;
-    } else if (!usuario.getSenha().equals(senha)) {
-      System.out.println("Senha incorreta!");
-      return false;
+      throw new UsuarioNaoEncontradoException(email);
+    }
+    if (!usuario.getSenha().equals(senha)) {
+      throw new SenhaIncorretaException(email);
     }
 
     sessao.login(usuario);
-    System.out.println("Login realizado com sucesso. Bem-vindo, " + usuario.getNome() + "!");
     return true;
   }
 
@@ -32,19 +33,21 @@ public class NegocioUsuario {
     return repositorio.buscarUsuario(email) != null;
   }
 
-  public void cadastrarUsuario(String nome, String email, String senha) {
-    if (nome == null || nome.isBlank() || email == null || email.isBlank() || senha == null || senha.isBlank()) {
-      System.out.println("Nome, e-mail e senha não podem ser vazios.");
-      return;
-    }
+  public void cadastrarUsuario(String nome, String email, String senha)
+          throws UsuarioExistenteException, NomeVazioException, NomeApenasLetrasException,
+          NomeTamanhoInvalidoException, EmailVazioException, EmailFormatoInvalidoException,
+          SenhaTamanhoInvalidoException {
 
     if (usuarioExiste(email)) {
-      System.out.println("Usuário já existe.");
-      return;
+      throw new UsuarioExistenteException(email);
     }
+
+    Usuario.validarNome(nome);
+    Usuario.validarEmail(email);
+    Usuario.validarSenha(senha);
 
     Usuario novoUsuario = new Usuario(nome, email, senha);
     repositorio.inserirUsuario(novoUsuario);
-    System.out.println("Usuário cadastrado com sucesso!");
   }
+
 }

@@ -1,5 +1,10 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.CategoriaVaziaException;
+import negocio.excecao.tarefa.CriadorVazioException;
+import negocio.excecao.tarefa.PrazoInvalidoException;
+import negocio.excecao.tarefa.TituloVazioException;
+
 import java.time.LocalDateTime;
 
 public class TarefaDelegavel extends Tarefa {
@@ -9,7 +14,7 @@ public class TarefaDelegavel extends Tarefa {
   private boolean jaDelegada;
 
   public TarefaDelegavel(String titulo, String descricao, LocalDateTime prazo, Prioridade prioridade, Categoria categoria, Usuario criador, Usuario responsavel)
-      throws IllegalArgumentException {
+          throws IllegalArgumentException, CriadorVazioException, TituloVazioException, CategoriaVaziaException, PrazoInvalidoException {
     super(titulo, descricao, prazo, prioridade, categoria, criador);
     this.responsavelOriginal = responsavel;
     this.responsavelAtual = responsavel;

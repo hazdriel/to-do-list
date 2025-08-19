@@ -1,13 +1,15 @@
 package negocio.entidade;
 import java.util.UUID;
 
+import negocio.excecao.tarefa.CategoriaVaziaException;
+
 public class Categoria {
   private final String id;
   private String nome;
 
-  public Categoria(String nome) throws IllegalArgumentException{
+  public Categoria(String nome) throws CategoriaVaziaException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+      throw new CategoriaVaziaException();
     }
     this.id = UUID.randomUUID().toString(); 
     this.nome = nome.trim();
@@ -21,9 +23,9 @@ public class Categoria {
         return nome;
     }
 
-    public void setNome(String nome) throws IllegalArgumentException{
+    public void setNome(String nome) throws CategoriaVaziaException {
       if (nome == null || nome.trim().isEmpty()) {
-        throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+        throw new CategoriaVaziaException();
       }
       this.nome = nome.trim();
     }

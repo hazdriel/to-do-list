@@ -20,6 +20,10 @@ public class RepositorioTarefas {
     return tarefas.get(id);
   }
 
+  public TarefaAntiga buscarTarefaPorTitulo(String titulo) {
+    return tarefas.get(titulo);
+  }
+
   public List<TarefaAntiga> listarTarefasPorUsuario(Usuario usuario) {
     List<TarefaAntiga> resultado = new ArrayList<>();
     for (TarefaAntiga tarefa : tarefas.values()) {

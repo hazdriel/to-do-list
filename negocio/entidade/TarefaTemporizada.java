@@ -1,5 +1,10 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.CategoriaVaziaException;
+import negocio.excecao.tarefa.CriadorVazioException;
+import negocio.excecao.tarefa.PrazoInvalidoException;
+import negocio.excecao.tarefa.TituloVazioException;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -10,7 +15,7 @@ public class TarefaTemporizada extends Tarefa {
   private Duration tempoGasto; 
 
   public TarefaTemporizada(String titulo, String descricao, LocalDateTime prazo, Prioridade prioridade, Categoria categoria,
-      Usuario criador, LocalDateTime prazoFinal, Duration estimativa) throws IllegalArgumentException {
+      Usuario criador, LocalDateTime prazoFinal, Duration estimativa) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, CategoriaVaziaException, PrazoInvalidoException {
     super(titulo, descricao, prazo, prioridade, categoria, criador);
     this.prazoFinal = prazoFinal;
     this.estimativa = estimativa;
