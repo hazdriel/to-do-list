@@ -3,26 +3,25 @@ package dados;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import negocio.entidade.*;
-
 import java.util.HashMap;
-
+import java.util.HashSet;
+import java.util.Set;
 
 public class RepositorioTarefas {
-  private Map<String, TarefaAntiga> tarefas = new HashMap<>();
+  private Map<String, TarefaAbstrata> tarefas = new HashMap<>();
 
-  public void inserirTarefa(TarefaAntiga tarefa) {
-    tarefas.put(tarefa.getID(), tarefa);
+  public void inserirTarefa(TarefaAbstrata tarefa) {
+    tarefas.put(tarefa.getId(), tarefa);
   }
 
-  public TarefaAntiga buscarTarefaPorID(String id) {
+  public TarefaAbstrata buscarTarefaPorID(String id) {
     return tarefas.get(id);
   }
 
-  public List<TarefaAntiga> listarTarefasPorUsuario(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
+  public List<TarefaAbstrata> listarTarefasPorUsuario(Usuario usuario) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
       if (tarefa.getCriador().equals(usuario)) {
         resultado.add(tarefa);
       }
@@ -30,9 +29,9 @@ public class RepositorioTarefas {
     return resultado;
   }
 
-  public boolean atualizarTarefa(TarefaAntiga tarefaAtualizada) {
-    if (tarefas.containsKey(tarefaAtualizada.getID())) {
-      tarefas.put(tarefaAtualizada.getID(), tarefaAtualizada);
+  public boolean atualizarTarefa(TarefaAbstrata tarefaAtualizada) {
+    if (tarefas.containsKey(tarefaAtualizada.getId())) {
+      tarefas.put(tarefaAtualizada.getId(), tarefaAtualizada);
       return true;
     }
     return false;
@@ -42,9 +41,9 @@ public class RepositorioTarefas {
     return tarefas.remove(id) != null;
   }
 
-  public List<TarefaAntiga> buscarPorPrioridade(Usuario usuario, Prioridade prioridade) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
+  public List<TarefaAbstrata> buscarPorPrioridade(Usuario usuario, Prioridade prioridade) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
         if (tarefa.getCriador().equals(usuario) && tarefa.getPrioridade() == prioridade) {
             resultado.add(tarefa);
         }
@@ -52,33 +51,74 @@ public class RepositorioTarefas {
     return resultado;
   }
 
-  public List<TarefaAntiga> buscarConcluidas(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-      if (tarefa.getCriador().equals(usuario) && tarefa.isConcluida()) {
+  public List<TarefaAbstrata> buscarConcluidas(Usuario usuario) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.estaConcluida()) {
         resultado.add(tarefa);
       }
     }
     return resultado;
   }
 
-   public List<TarefaAntiga> buscarPendentes(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-      if (tarefa.getCriador().equals(usuario) && !tarefa.isConcluida()) {
+   public List<TarefaAbstrata> buscarPendentes(Usuario usuario) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.estaPendente()) {
         resultado.add(tarefa);
       }
     }
     return resultado;
   }
 
-  public List<TarefaAntiga> buscarAtrasadas(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-        if (tarefa.getCriador().equals(usuario) && tarefa.isAtrasada()) {
+  public List<TarefaAbstrata> buscarAtrasadas(Usuario usuario) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+        if (tarefa.getCriador().equals(usuario) && tarefa.estaAtrasada()) {
             resultado.add(tarefa);
         }
     }
     return resultado;
-}
+  }
+
+  // Novos métodos para as funcionalidades específicas
+  public List<TarefaAbstrata> buscarPorTipo(Usuario usuario, String tipo) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.getTipo().equals(tipo)) {
+        resultado.add(tarefa);
+      }
+    }
+    return resultado;
+  }
+
+  public List<TarefaAbstrata> buscarDelegadasParaUsuario(Usuario usuario) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getResponsavel().equals(usuario) && !tarefa.getCriador().equals(usuario)) {
+        resultado.add(tarefa);
+      }
+    }
+    return resultado;
+  }
+
+  public List<TarefaAbstrata> buscarPorCategoria(Usuario usuario, Categoria categoria) {
+    List<TarefaAbstrata> resultado = new ArrayList<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.getCategoria() == categoria) {
+        resultado.add(tarefa);
+      }
+    }
+    return resultado;
+  }
+
+  public List<Categoria> buscarCategoriasDoUsuario(Usuario usuario) {
+    Set<Categoria> categorias = new HashSet<>();
+    for (TarefaAbstrata tarefa : tarefas.values()) {
+      if (tarefa.getCriador().equals(usuario) && tarefa.getCategoria() != null) {
+        categorias.add(tarefa.getCategoria());
+      }
+    }
+    return new ArrayList<>(categorias);
+  }
 }
