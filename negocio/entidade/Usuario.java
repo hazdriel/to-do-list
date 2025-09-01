@@ -17,17 +17,13 @@ public class Usuario implements Serializable {
     Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
   public Usuario(String nome, String email, String senha) throws IllegalArgumentException, EmailVazioException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, SenhaVaziaException, NomeVazioException, EmailFormatoInvalidoException {
-    validarParametrosObrigatorios(nome, email, senha);
+    validarNome(nome);
+    validarEmail(email);
+    validarSenha(senha);
     this.id = GeradorId.gerarIdUsuario();
     this.nome = nome.trim();
     this.email = email.trim().toLowerCase();
     this.senha = senha;
-  }
-
-  private void validarParametrosObrigatorios(String nome, String email, String senha) throws IllegalArgumentException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException, EmailVazioException, EmailFormatoInvalidoException, SenhaTamanhoInvalidoException, SenhaVaziaException {
-    validarNome(nome);
-    validarEmail(email);
-    validarSenha(senha);
   }
   
   private void validarNome(String nome) throws NomeVazioException, NomeApenasLetrasException, NomeTamanhoInvalidoException {

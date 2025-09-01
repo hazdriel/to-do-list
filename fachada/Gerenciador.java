@@ -52,7 +52,7 @@ public class Gerenciador {
 
     // GERENCIAMENTO DE SESSÃO E AUTENTICAÇÃO
     
-    public boolean fazerLogin(String email, String senha) throws LoginJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
+    public boolean fazerLogin(String email, String senha) throws SessaoJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
         return negocioSessao.autenticar(email, senha);
     }
 

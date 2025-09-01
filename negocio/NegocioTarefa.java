@@ -151,7 +151,7 @@ public class NegocioTarefa {
   
   public void delegarTarefa(String id, Usuario novoResponsavel) throws DelegacaoStatusInvalidoException, DelegacaoMotivoException, DelegacaoRegistroInvalidoException, DelegacaoResponsavelInvalidoException, DelegacaoResponsavelVazioException,
           TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException,
-          TarefaIDNaoPertenceException, DelegacaoInvalidaException, CriadorVazioException {
+          TarefaIDNaoPertenceException, DelegacaoInvalidaException, CriadorVazioException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     validarResponsavel(novoResponsavel);
 
@@ -217,7 +217,7 @@ public class NegocioTarefa {
 
   // MÉTODOS ESPECÍFICOS PARA TEMPORIZAÇÃO
   
-  public void registrarTrabalho(String id, java.time.Duration duracao) throws TemporizadaNaoEException, TemporizadaDuracaoException, TemporizadaTempoException, TemporizadaEstimativaException, AtualizarTarefaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
+  public void registrarTrabalho(String id, java.time.Duration duracao) throws TemporizadaNaoEException, TemporizadaDuracaoException, TemporizadaTempoException, TemporizadaEstimativaException, AtualizarTarefaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     
     if (!(tarefa instanceof TarefaTemporizada)) {
@@ -235,19 +235,19 @@ public class NegocioTarefa {
 
   // MÉTODOS DE CONTROLE DE STATUS
   
-  public void iniciarTarefa(String id) throws IniciacaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
+  public void iniciarTarefa(String id) throws IniciacaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.iniciar();
     repositorioTarefas.atualizarTarefa(tarefa);
   }
 
-  public void cancelarTarefa(String id) throws CancelamentoInvalidoException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
+  public void cancelarTarefa(String id) throws CancelamentoInvalidoException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.cancelar();
     repositorioTarefas.atualizarTarefa(tarefa);
   }
   
-  public void concluirTarefa(String id) throws ConclusaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, RecorrenteExecucaoException, AtualizarTarefaException {
+  public void concluirTarefa(String id) throws ConclusaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, RecorrenteExecucaoException, AtualizarTarefaException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.concluir();
     repositorioTarefas.atualizarTarefa(tarefa);
@@ -257,7 +257,7 @@ public class NegocioTarefa {
   
   public void atualizarTarefa(String id, String novoTitulo, String novaDescricao, 
                                Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria)
-          throws TituloVazioException, DescricaoVaziaException, AtualizarTarefaException, PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
+          throws TituloVazioException, DescricaoVaziaException, AtualizarTarefaException, PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
 
     if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {

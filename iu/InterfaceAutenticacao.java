@@ -3,6 +3,9 @@ package iu;
 import fachada.Gerenciador;
 import negocio.entidade.Usuario;
 import java.util.Scanner;
+import negocio.excecao.sessao.SessaoJaAtivoException;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.usuario.*;
 
 /**
  * Módulo da interface de usuário responsável por todas as operações de autenticação,
@@ -64,11 +67,21 @@ public final class InterfaceAutenticacao {
         String email = scanner.nextLine().trim();
         System.out.print("🔒 Senha: ");
         String senha = scanner.nextLine();
-        
-        if (gerenciador.fazerLogin(email, senha)) {
-            System.out.println("\n✅ Login realizado com sucesso! Bem-vindo(a).");
-        } else {
-            System.out.println("\n❌ Falha no login. Email ou senha incorretos.");
+
+        try {
+            if (gerenciador.fazerLogin(email, senha)) {
+                System.out.println("\n✅ Login realizado com sucesso! Bem-vindo(a).");
+            } else {
+                System.out.println("\n❌ Falha no login. Email ou senha incorretos.");
+            }
+        } catch (SessaoJaAtivoException e) {
+            System.out.println("\n❌ Erro ao fazer login: " + e.getMessage());
+        } catch (EmailVazioException e) {
+            System.out.println("\n❌ Erro ao fazer login: " + e.getMessage());
+        } catch (SenhaVaziaException e) {
+            System.out.println("\n❌ Erro ao fazer login: " + e.getMessage());
+        } catch (UsuarioVazioException e) {
+            System.out.println("\n❌ Erro ao fazer login: " + e.getMessage());
         }
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
@@ -89,9 +102,9 @@ public final class InterfaceAutenticacao {
         try {
             gerenciador.cadastrarUsuario(nome, email, senha);
             System.out.println("\n✅ Utilizador cadastrado com sucesso! Agora, por favor, faça o login.");
-        } catch (Exception e) {
-            // Exibe uma mensagem mais amigável para o utilizador.
-            System.out.println("\n❌ Erro ao cadastrar utilizador: " + e.getMessage());
+        } catch (EmailVazioException | SenhaTamanhoInvalidoException | UsuarioExistenteException | NomeApenasLetrasException |
+                 SenhaVaziaException | NomeTamanhoInvalidoException | NomeVazioException | EmailFormatoInvalidoException e) {
+            System.out.println("\n❌ Erro ao cadastrar: " + e.getMessage());
         }
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
@@ -103,9 +116,13 @@ public final class InterfaceAutenticacao {
         UtilitariosInterface.limparTela();
         System.out.println("--- LOGOUT ---");
         System.out.println("🚪 A sua sessão está a ser encerrada...");
-        
-        gerenciador.fazerLogout();
-        
+
+        try {
+            gerenciador.fazerLogout();
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao fazer logout: " + e.getMessage());
+        }
+
         System.out.println("\n✅ Sessão encerrada com sucesso!");
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
@@ -126,6 +143,12 @@ public final class InterfaceAutenticacao {
      * @return O objeto {@code Usuario} logado, ou {@code null} se ninguém estiver logado.
      */
     public Usuario getUsuarioLogado() {
-        return gerenciador.getUsuarioLogado();
+        try {
+            return gerenciador.getUsuarioLogado();
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro: " + e.getMessage());
+            return null;
+        }
     }
+
 }

@@ -2,6 +2,10 @@ package iu;
 
 import fachada.Gerenciador;
 import negocio.entidade.*;
+import negocio.excecao.categoria.CategoriaVaziaException;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.tarefa.*;
+
 import java.util.List;
 import java.util.Scanner;
 
@@ -32,34 +36,45 @@ public class InterfaceVisualizacao {
         System.out.println("0 -> Voltar");
         System.out.print("Opção: ");
 
-        int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine(); 
+        try {
+            int opcao = UtilitariosInterface.lerInteiro(scanner);
+            scanner.nextLine();
 
-        switch (opcao) {
-            case 1 -> exibirTarefas(gerenciador.listarTarefas(), "TODAS AS TAREFAS");
-            case 2 -> exibirMinhasTarefas();
-            case 3 -> exibirTarefasDelegadasPorMim();
-            case 4 -> exibirTarefasDelegadasParaMim();
-            case 5 -> exibirPorPrioridade();
-            case 6 -> exibirPorStatus();
-            case 7 -> exibirPorTipo();
-            case 8 -> exibirPorCategoria();
-            case 9 -> buscarTarefaPorId();
-            case 10 -> exibirEstatisticas();
-            case 0 -> System.out.println("Voltando ao menu principal...");
-            default -> System.out.println("Opção inválida.");
+            switch (opcao) {
+                case 1 -> exibirTarefas(gerenciador.listarTarefas(), "TODAS AS TAREFAS");
+                case 2 -> exibirMinhasTarefas();
+                case 3 -> exibirTarefasDelegadasPorMim();
+                case 4 -> exibirTarefasDelegadasParaMim();
+                case 5 -> exibirPorPrioridade();
+                case 6 -> exibirPorStatus();
+                case 7 -> exibirPorTipo();
+                case 8 -> exibirPorCategoria();
+                case 9 -> buscarTarefaPorId();
+                case 10 -> exibirEstatisticas();
+                case 0 -> System.out.println("Voltando ao menu principal...");
+                default -> System.out.println("Opção inválida.");
+            }
+        }  catch (SessaoJaInativaException e) {
+        System.out.println("\n❌ Erro ao exibir menu: " + e.getMessage());
         }
     }
     
     private void exibirPorPrioridade() {
         System.out.println("\n--- FILTRAR POR PRIORIDADE ---");
-        Prioridade prioridade = UtilitariosInterface.lerPrioridade(scanner);
-        
-        if (prioridade != null) {
-            List<TarefaAbstrata> tarefas = gerenciador.listarPorPrioridade(prioridade);
-            exibirTarefas(tarefas, "TAREFAS COM PRIORIDADE " + prioridade);
-        } else {
-            System.out.println("Operação cancelada.");
+        try {
+            Prioridade prioridade = UtilitariosInterface.lerPrioridade(scanner);
+
+            if (prioridade != null) {
+                List<TarefaAbstrata> tarefas = null;
+                tarefas = gerenciador.listarPorPrioridade(prioridade);
+                exibirTarefas(tarefas, "TAREFAS COM PRIORIDADE " + prioridade);
+            } else {
+                System.out.println("Operação cancelada.");
+            }
+        }  catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por prioridade: " + e.getMessage());
+        } catch (PrioridadeVaziaException e) {
+            System.out.println("\n❌ Erro ao filtrar por prioridade: " + e.getMessage());
         }
     }
     
@@ -70,33 +85,37 @@ public class InterfaceVisualizacao {
         System.out.println("3 -> CONCLUIDA");
         System.out.println("4 -> CANCELADA");
         System.out.print("Opção: ");
-        
-        int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
-        
-        Status status = switch (opcao) {
-            case 1 -> Status.PENDENTE;
-            case 2 -> Status.EM_PROGRESSO;
-            case 3 -> Status.CONCLUIDA;
-            case 4 -> Status.CANCELADA;
-            default -> {
-                System.out.println("Opção inválida.");
-                yield null;
-            }
-        };
-        
-        if (status != null) {
-            List<TarefaAbstrata> tarefas = switch (status) {
-                case PENDENTE -> gerenciador.listarPendentes();
-                case EM_PROGRESSO -> gerenciador.listarTarefas().stream()
-                    .filter(t -> t.getStatus() == Status.EM_PROGRESSO)
-                    .toList();
-                case CONCLUIDA -> gerenciador.listarConcluidas();
-                case CANCELADA -> gerenciador.listarTarefas().stream()
-                    .filter(t -> t.getStatus() == Status.CANCELADA)
-                    .toList();
+
+        try {
+            int opcao = UtilitariosInterface.lerInteiro(scanner);
+            scanner.nextLine();
+
+            Status status = switch (opcao) {
+                case 1 -> Status.PENDENTE;
+                case 2 -> Status.EM_PROGRESSO;
+                case 3 -> Status.CONCLUIDA;
+                case 4 -> Status.CANCELADA;
+                default -> {
+                    System.out.println("Opção inválida.");
+                    yield null;
+                }
             };
-            exibirTarefas(tarefas, "TAREFAS COM STATUS " + status);
+
+            if (status != null) {
+                List<TarefaAbstrata> tarefas = switch (status) {
+                    case PENDENTE -> gerenciador.listarPendentes();
+                    case EM_PROGRESSO -> gerenciador.listarTarefas().stream()
+                            .filter(t -> t.getStatus() == Status.EM_PROGRESSO)
+                            .toList();
+                    case CONCLUIDA -> gerenciador.listarConcluidas();
+                    case CANCELADA -> gerenciador.listarTarefas().stream()
+                            .filter(t -> t.getStatus() == Status.CANCELADA)
+                            .toList();
+                };
+                exibirTarefas(tarefas, "TAREFAS COM STATUS " + status);
+            }
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por status: " + e.getMessage());
         }
     }
     
@@ -107,51 +126,65 @@ public class InterfaceVisualizacao {
         System.out.println("3 -> Recorrente");
         System.out.println("4 -> Temporizada");
         System.out.print("Opção: ");
-        
-        int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
-        
-        String tipo = switch (opcao) {
-            case 1 -> "Simples";
-            case 2 -> "Delegável";
-            case 3 -> "Recorrente";
-            case 4 -> "Temporizada";
-            default -> {
-                System.out.println("Opção inválida.");
-                yield null;
+
+        try {
+            int opcao = UtilitariosInterface.lerInteiro(scanner);
+            scanner.nextLine();
+
+            String tipo = switch (opcao) {
+                case 1 -> "Simples";
+                case 2 -> "Delegável";
+                case 3 -> "Recorrente";
+                case 4 -> "Temporizada";
+                default -> {
+                    System.out.println("Opção inválida.");
+                    yield null;
+                }
+            };
+            if (tipo != null) {
+                List<TarefaAbstrata> tarefas = gerenciador.listarPorTipo(tipo);
+                exibirTarefas(tarefas, "TAREFAS DO TIPO " + tipo.toUpperCase());
             }
-        };
-        
-        if (tipo != null) {
-            List<TarefaAbstrata> tarefas = gerenciador.listarPorTipo(tipo);
-            exibirTarefas(tarefas, "TAREFAS DO TIPO " + tipo.toUpperCase());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por tipo: " + e.getMessage());
+        } catch (TipoVazioException e) {
+            System.out.println("\n❌ Erro ao filtrar por tipo: " + e.getMessage());
         }
     }
     
     private void exibirPorCategoria() {
         System.out.println("\n--- FILTRAR POR CATEGORIA ---");
-        List<Categoria> categorias = gerenciador.listarCategorias();
-        
-        if (categorias.isEmpty()) {
-            System.out.println("Nenhuma categoria disponível.");
-            return;
-        }
-        
-        System.out.println("Categorias disponíveis:");
-        for (int i = 0; i < categorias.size(); i++) {
-            System.out.println((i + 1) + " -> " + categorias.get(i).getNome());
-        }
-        
-        System.out.print("Escolha uma categoria (número): ");
-        int escolha = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
-        
-        if (escolha > 0 && escolha <= categorias.size()) {
-            Categoria categoria = categorias.get(escolha - 1);
-            List<TarefaAbstrata> tarefas = gerenciador.listarPorCategoria(categoria);
-            exibirTarefas(tarefas, "TAREFAS DA CATEGORIA " + categoria.getNome().toUpperCase());
-        } else {
-            System.out.println("Escolha inválida.");
+        try {
+            List<Categoria> categorias = null;
+            categorias = gerenciador.listarCategorias();
+
+
+            if (categorias.isEmpty()) {
+                System.out.println("Nenhuma categoria disponível.");
+                return;
+            }
+
+            System.out.println("Categorias disponíveis:");
+            for (int i = 0; i < categorias.size(); i++) {
+                System.out.println((i + 1) + " -> " + categorias.get(i).getNome());
+            }
+
+            System.out.print("Escolha uma categoria (número): ");
+            int escolha = UtilitariosInterface.lerInteiro(scanner);
+            scanner.nextLine();
+
+            if (escolha > 0 && escolha <= categorias.size()) {
+                Categoria categoria = categorias.get(escolha - 1);
+                List<TarefaAbstrata> tarefas = null;
+                tarefas = gerenciador.listarPorCategoria(categoria);
+                exibirTarefas(tarefas, "TAREFAS DA CATEGORIA " + categoria.getNome().toUpperCase());
+            } else {
+                System.out.println("Escolha inválida.");
+            }
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por categoria: " + e.getMessage());
+        } catch (CategoriaVaziaException e) {
+            System.out.println("\n❌ Erro ao filtrar por categoria: " + e.getMessage());
         }
     }
     
@@ -200,10 +233,10 @@ public class InterfaceVisualizacao {
             
             System.out.println("Total: " + minhasTarefas.size() + " tarefa(s) onde você é responsável");
             
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao buscar suas tarefas: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por suas tarefas: " + e.getMessage());
         }
-        
+
         System.out.println("Pressione Enter para continuar...");
         scanner.nextLine();
     }
@@ -260,10 +293,10 @@ public class InterfaceVisualizacao {
             
             System.out.println("Total: " + tarefasDelegadas.size() + " tarefa(s) que você criou e delegou");
             
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao buscar tarefas delegadas por você: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por tarefas delegadas por você: " + e.getMessage());
         }
-        
+
         System.out.println("Pressione Enter para continuar...");
         scanner.nextLine();
     }
@@ -321,94 +354,107 @@ public class InterfaceVisualizacao {
             
             System.out.println("Total: " + tarefasDelegadas.size() + " tarefa(s) delegada(s) para você por outros usuários");
             
-        } catch (Exception e) {
-            System.out.println("❌ Erro ao buscar tarefas delegadas: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar por tarefas delegadas à você: " + e.getMessage());
         }
-        
+
         System.out.println("Pressione Enter para continuar...");
         scanner.nextLine();
     }
     
     private void buscarTarefaPorId() {
         System.out.println("\n--- BUSCAR TAREFA POR ID ---");
-        String id = UtilitariosInterface.lerString(scanner, "ID da tarefa: ");
-        
-        TarefaAbstrata tarefa = gerenciador.buscarTarefa(id);
-        
-        if (tarefa != null) {
-            UtilitariosInterface.exibirTarefaDetalhada(tarefa);
-        } else {
-            System.out.println("❌ Tarefa não encontrada.");
+        try {
+            String id = UtilitariosInterface.lerString(scanner, "ID da tarefa: ");
+
+            TarefaAbstrata tarefa = gerenciador.buscarTarefa(id);
+
+            if (tarefa != null) {
+                UtilitariosInterface.exibirTarefaDetalhada(tarefa);
+            } else {
+                System.out.println("❌ Tarefa não encontrada.");
+            }
+        } catch (TarefaIDVazioException e) {
+            System.out.println("\n❌ Erro ao filtrar buscar tarefa: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao filtrar buscar tarefa: " + e.getMessage());
+        } catch (TarefaIDNaoEncontradaException e) {
+            System.out.println("\n❌ Erro ao filtrar buscar tarefa: " + e.getMessage());
+        } catch (TarefaIDNaoPertenceException e) {
+            System.out.println("\n❌ Erro ao filtrar buscar tarefa: " + e.getMessage());
         }
     }
     
     private void exibirEstatisticas() {
         System.out.println("\n--- ESTATÍSTICAS DAS TAREFAS ---");
-        
-        List<TarefaAbstrata> todasTarefas = gerenciador.listarTarefas();
-        if (todasTarefas == null || todasTarefas.isEmpty()) {
-            System.out.println("Nenhuma tarefa encontrada para gerar estatísticas.");
-            return;
+        try {
+            List<TarefaAbstrata> todasTarefas = gerenciador.listarTarefas();
+            if (todasTarefas == null || todasTarefas.isEmpty()) {
+                System.out.println("Nenhuma tarefa encontrada para gerar estatísticas.");
+                return;
+            }
+
+            // Estatísticas básicas
+            long totalTarefas = todasTarefas.size();
+            long tarefasConcluidas = todasTarefas.stream()
+                    .filter(t -> t.getStatus() == Status.CONCLUIDA)
+                    .count();
+            long tarefasPendentes = todasTarefas.stream()
+                    .filter(t -> t.getStatus() == Status.PENDENTE)
+                    .count();
+            long tarefasEmProgresso = todasTarefas.stream()
+                    .filter(t -> t.getStatus() == Status.EM_PROGRESSO)
+                    .count();
+            long tarefasAtrasadas = todasTarefas.stream()
+                    .filter(TarefaAbstrata::estaAtrasada)
+                    .count();
+
+            // Estatísticas por prioridade
+            long tarefasAlta = todasTarefas.stream()
+                    .filter(t -> t.getPrioridade() == Prioridade.ALTA)
+                    .count();
+            long tarefasMedia = todasTarefas.stream()
+                    .filter(t -> t.getPrioridade() == Prioridade.MEDIA)
+                    .count();
+            long tarefasBaixa = todasTarefas.stream()
+                    .filter(t -> t.getPrioridade() == Prioridade.BAIXA)
+                    .count();
+
+            // Exibir estatísticas
+            System.out.println("📊 ESTATÍSTICAS GERAIS:");
+            System.out.println("   Total de tarefas: " + totalTarefas);
+            System.out.println("   Tarefas concluídas: " + tarefasConcluidas + " (" + calcularPorcentagem(tarefasConcluidas, totalTarefas) + "%)");
+            System.out.println("   Tarefas pendentes: " + tarefasPendentes + " (" + calcularPorcentagem(tarefasPendentes, totalTarefas) + "%)");
+            System.out.println("   Tarefas em progresso: " + tarefasEmProgresso + " (" + calcularPorcentagem(tarefasEmProgresso, totalTarefas) + "%)");
+            System.out.println("   Tarefas atrasadas: " + tarefasAtrasadas + " (" + calcularPorcentagem(tarefasAtrasadas, totalTarefas) + "%)");
+
+            System.out.println("\n📈 DISTRIBUIÇÃO POR PRIORIDADE:");
+            System.out.println("   Alta: " + tarefasAlta + " (" + calcularPorcentagem(tarefasAlta, totalTarefas) + "%)");
+            System.out.println("   Média: " + tarefasMedia + " (" + calcularPorcentagem(tarefasMedia, totalTarefas) + "%)");
+            System.out.println("   Baixa: " + tarefasBaixa + " (" + calcularPorcentagem(tarefasBaixa, totalTarefas) + "%)");
+
+            // Estatísticas por tipo
+            long tarefasSimples = todasTarefas.stream()
+                    .filter(t -> "Simples".equals(t.getTipo()))
+                    .count();
+            long tarefasDelegaveis = todasTarefas.stream()
+                    .filter(t -> "Delegável".equals(t.getTipo()))
+                    .count();
+            long tarefasRecorrentes = todasTarefas.stream()
+                    .filter(t -> "Recorrente".equals(t.getTipo()))
+                    .count();
+            long tarefasTemporizadas = todasTarefas.stream()
+                    .filter(t -> "Temporizada".equals(t.getTipo()))
+                    .count();
+
+            System.out.println("\n🔧 DISTRIBUIÇÃO POR TIPO:");
+            System.out.println("   Simples: " + tarefasSimples + " (" + calcularPorcentagem(tarefasSimples, totalTarefas) + "%)");
+            System.out.println("   Delegáveis: " + tarefasDelegaveis + " (" + calcularPorcentagem(tarefasDelegaveis, totalTarefas) + "%)");
+            System.out.println("   Recorrentes: " + tarefasRecorrentes + " (" + calcularPorcentagem(tarefasRecorrentes, totalTarefas) + "%)");
+            System.out.println("   Temporizadas: " + tarefasTemporizadas + " (" + calcularPorcentagem(tarefasTemporizadas, totalTarefas) + "%)");
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao exibir estatísticas: " + e.getMessage());
         }
-        
-        // Estatísticas básicas
-        long totalTarefas = todasTarefas.size();
-        long tarefasConcluidas = todasTarefas.stream()
-            .filter(t -> t.getStatus() == Status.CONCLUIDA)
-            .count();
-        long tarefasPendentes = todasTarefas.stream()
-            .filter(t -> t.getStatus() == Status.PENDENTE)
-            .count();
-        long tarefasEmProgresso = todasTarefas.stream()
-            .filter(t -> t.getStatus() == Status.EM_PROGRESSO)
-            .count();
-        long tarefasAtrasadas = todasTarefas.stream()
-            .filter(TarefaAbstrata::estaAtrasada)
-            .count();
-        
-        // Estatísticas por prioridade
-        long tarefasAlta = todasTarefas.stream()
-            .filter(t -> t.getPrioridade() == Prioridade.ALTA)
-            .count();
-        long tarefasMedia = todasTarefas.stream()
-            .filter(t -> t.getPrioridade() == Prioridade.MEDIA)
-            .count();
-        long tarefasBaixa = todasTarefas.stream()
-            .filter(t -> t.getPrioridade() == Prioridade.BAIXA)
-            .count();
-        
-        // Exibir estatísticas
-        System.out.println("📊 ESTATÍSTICAS GERAIS:");
-        System.out.println("   Total de tarefas: " + totalTarefas);
-        System.out.println("   Tarefas concluídas: " + tarefasConcluidas + " (" + calcularPorcentagem(tarefasConcluidas, totalTarefas) + "%)");
-        System.out.println("   Tarefas pendentes: " + tarefasPendentes + " (" + calcularPorcentagem(tarefasPendentes, totalTarefas) + "%)");
-        System.out.println("   Tarefas em progresso: " + tarefasEmProgresso + " (" + calcularPorcentagem(tarefasEmProgresso, totalTarefas) + "%)");
-        System.out.println("   Tarefas atrasadas: " + tarefasAtrasadas + " (" + calcularPorcentagem(tarefasAtrasadas, totalTarefas) + "%)");
-        
-        System.out.println("\n📈 DISTRIBUIÇÃO POR PRIORIDADE:");
-        System.out.println("   Alta: " + tarefasAlta + " (" + calcularPorcentagem(tarefasAlta, totalTarefas) + "%)");
-        System.out.println("   Média: " + tarefasMedia + " (" + calcularPorcentagem(tarefasMedia, totalTarefas) + "%)");
-        System.out.println("   Baixa: " + tarefasBaixa + " (" + calcularPorcentagem(tarefasBaixa, totalTarefas) + "%)");
-        
-        // Estatísticas por tipo
-        long tarefasSimples = todasTarefas.stream()
-            .filter(t -> "Simples".equals(t.getTipo()))
-            .count();
-        long tarefasDelegaveis = todasTarefas.stream()
-            .filter(t -> "Delegável".equals(t.getTipo()))
-            .count();
-        long tarefasRecorrentes = todasTarefas.stream()
-            .filter(t -> "Recorrente".equals(t.getTipo()))
-            .count();
-        long tarefasTemporizadas = todasTarefas.stream()
-            .filter(t -> "Temporizada".equals(t.getTipo()))
-            .count();
-        
-        System.out.println("\n🔧 DISTRIBUIÇÃO POR TIPO:");
-        System.out.println("   Simples: " + tarefasSimples + " (" + calcularPorcentagem(tarefasSimples, totalTarefas) + "%)");
-        System.out.println("   Delegáveis: " + tarefasDelegaveis + " (" + calcularPorcentagem(tarefasDelegaveis, totalTarefas) + "%)");
-        System.out.println("   Recorrentes: " + tarefasRecorrentes + " (" + calcularPorcentagem(tarefasRecorrentes, totalTarefas) + "%)");
-        System.out.println("   Temporizadas: " + tarefasTemporizadas + " (" + calcularPorcentagem(tarefasTemporizadas, totalTarefas) + "%)");
     }
     
     /**

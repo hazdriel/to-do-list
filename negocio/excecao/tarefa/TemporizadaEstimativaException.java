@@ -1,5 +1,6 @@
 package negocio.excecao.tarefa;
 
+@SuppressWarnings("serial")
 public class TemporizadaEstimativaException extends TarefaException {
 
     public TemporizadaEstimativaException() {
