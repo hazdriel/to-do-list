@@ -1,14 +1,11 @@
 package negocio.entidade;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-/**
- * Classe abstrata que define a estrutura base de uma tarefa.
- * Contém apenas os atributos e comportamentos essenciais comuns a todas as tarefas.
- */
-
-public abstract class Tarefa {
+// Classe abstrata base para todas as tarefas do sistema
+public abstract class TarefaAbstrata implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String id;
     private String titulo;
     private String descricao;
@@ -23,7 +20,7 @@ public abstract class Tarefa {
     private LocalDateTime dataFim;
     private LocalDateTime dataUltimaModificacao;
     
-    public Tarefa(String titulo, String descricao, LocalDateTime prazo, 
+    public TarefaAbstrata(String titulo, String descricao, LocalDateTime prazo, 
                   Prioridade prioridade, Categoria categoria, Usuario criador) throws IllegalArgumentException {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new IllegalArgumentException("Título não pode ser vazio");
@@ -32,11 +29,11 @@ public abstract class Tarefa {
             throw new IllegalArgumentException("Criador não pode ser nulo");
         }
         
-        this.id = UUID.randomUUID().toString();
+        this.id = GeradorId.gerarIdTarefa();
         this.titulo = titulo.trim();
-        this.descricao = descricao != null ? descricao.trim() : "";
+        this.descricao = descricao.trim();
         this.prazo = prazo;
-        this.prioridade = prioridade != null ? prioridade : Prioridade.MEDIA;
+        this.prioridade = prioridade != null ? prioridade : Prioridade.BAIXA;
         this.categoria = categoria;
         this.status = Status.PENDENTE;
         this.criador = criador;
@@ -82,23 +79,6 @@ public abstract class Tarefa {
         touch();
     }
     
-    public void delegar(Usuario novoResponsavel) throws IllegalArgumentException, UnsupportedOperationException {
-        if (novoResponsavel == null) {
-            throw new IllegalArgumentException("Responsável não pode ser nulo");
-        }
-        if (this.status == Status.CONCLUIDA || this.status == Status.CANCELADA) {
-            throw new IllegalStateException("Não é possível delegar uma tarefa finalizada");
-        }
-        if (!podeSerDelegada()) {
-            throw new UnsupportedOperationException("Este tipo de tarefa não pode ser delegada");
-        }
-        if (novoResponsavel.equals(this.responsavel)) {
-            throw new IllegalArgumentException("Novo responsável é o mesmo do atual");
-        }
-        this.responsavel = novoResponsavel;
-        touch();
-    }
-    
     public boolean estaAtrasada() {
         return prazo != null && 
                prazo.isBefore(LocalDateTime.now()) && 
@@ -110,23 +90,23 @@ public abstract class Tarefa {
         return prazo != null && dataFim != null && dataFim.isAfter(prazo);
     }
     
-    public boolean estaConcluida() {
-        return status == Status.CONCLUIDA;
+    public boolean estaFinalizada() {
+        return status == Status.CONCLUIDA || status == Status.CANCELADA;
     }
     
-    public boolean estaCancelada() {
-        return status == Status.CANCELADA;
+    public boolean podeSerAlterada() {
+        return !estaFinalizada();
     }
     
-    public boolean estaEmProgresso() {
-        return status == Status.EM_PROGRESSO;
+    public boolean estaAtiva() {
+        return status == Status.PENDENTE || status == Status.EM_PROGRESSO;
     }
     
-    public boolean estaPendente() {
-        return status == Status.PENDENTE;
+    public boolean temStatus(Status status) {
+        return this.status == status;
     }
     
-    protected void setTitulo(String titulo) throws IllegalArgumentException {
+    public void setTitulo(String titulo) throws IllegalArgumentException {
         if (titulo == null || titulo.trim().isEmpty()) {
             throw new IllegalArgumentException("Título não pode ser vazio");
         }
@@ -134,27 +114,75 @@ public abstract class Tarefa {
         touch();
     }
     
-    protected void setDescricao(String descricao) throws IllegalArgumentException {
-        this.descricao = descricao != null ? descricao.trim() : "";
+    public void setDescricao(String descricao) throws IllegalArgumentException {
+        if (descricao == null || descricao.trim().isEmpty()) {
+            throw new IllegalArgumentException("Descrição não pode ser vazia");
+        }
+        this.descricao = descricao.trim();
         touch();
     }
     
-    protected void setPrazo(LocalDateTime prazo) throws IllegalArgumentException {
+    public void setPrazo(LocalDateTime prazo) throws IllegalArgumentException, IllegalStateException {
+        if (!podeSerAlterada()) {
+            throw new IllegalStateException("Não é possível alterar prazo de tarefa finalizada");
+        }
+        
+        if (prazo != null) {
+            if (prazo.isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Prazo não pode ser no passado");
+            }
+            if (prazo.isBefore(dataCriacao)) {
+                throw new IllegalArgumentException("Prazo não pode ser anterior à data de criação");
+            }
+        }
+        
         this.prazo = prazo;
         touch();
     }
     
-    protected void setPrioridade(Prioridade prioridade) throws IllegalArgumentException {
+    public void setPrioridade(Prioridade prioridade) throws IllegalArgumentException, IllegalStateException {
+        if (!podeSerAlterada()) {
+            throw new IllegalStateException("Não é possível alterar prioridade de tarefa finalizada");
+        }
+        
         this.prioridade = prioridade != null ? prioridade : Prioridade.MEDIA;
         touch();
     }
 
-    protected void setCategoria(Categoria categoria) throws IllegalArgumentException {
+    public void setCategoria(Categoria categoria) throws IllegalArgumentException, IllegalStateException {
+        if (!podeSerAlterada()) {
+            throw new IllegalStateException("Não é possível alterar categoria de tarefa finalizada");
+        }
+        
+        if (categoria == null) {
+            throw new IllegalArgumentException("Categoria não pode ser nula");
+        }
+        
         this.categoria = categoria;
         touch();
     }
     
-    protected void setStatus(Status status) throws IllegalArgumentException {
+    public void setStatus(Status status) throws IllegalArgumentException, IllegalStateException {
+        if (status == null) {
+            throw new IllegalArgumentException("Status não pode ser nulo");
+        }
+        
+        if (this.status == Status.CONCLUIDA && status != Status.CONCLUIDA) {
+            throw new IllegalStateException("Não é possível alterar status de tarefa concluída");
+        }
+        
+        if (this.status == Status.CANCELADA && status != Status.CANCELADA) {
+            throw new IllegalStateException("Não é possível alterar status de tarefa cancelada");
+        }
+        
+        if (status == Status.EM_PROGRESSO && dataInicio == null) {
+            dataInicio = LocalDateTime.now();
+        }
+        
+        if (status == Status.CONCLUIDA && dataFim == null) {
+            dataFim = LocalDateTime.now();
+        }
+        
         this.status = status;
         touch();
     }
@@ -183,7 +211,7 @@ public abstract class Tarefa {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        Tarefa tarefa = (Tarefa) obj;
+        TarefaAbstrata tarefa = (TarefaAbstrata) obj;
         return id.equals(tarefa.id);
     }
     

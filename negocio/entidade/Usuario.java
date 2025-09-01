@@ -1,10 +1,11 @@
 package negocio.entidade;
 
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
-public class Usuario {
+public class Usuario implements Serializable {
+  private static final long serialVersionUID = 1L;
   private String id;
   private String nome;
   private String email;
@@ -15,7 +16,7 @@ public class Usuario {
 
   public Usuario(String nome, String email, String senha) throws IllegalArgumentException {
     validarParametrosObrigatorios(nome, email, senha);
-    this.id = UUID.randomUUID().toString();
+    this.id = GeradorId.gerarIdUsuario();
     this.nome = nome.trim();
     this.email = email.trim().toLowerCase();
     this.senha = senha;
