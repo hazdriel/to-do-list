@@ -3,82 +3,189 @@ package dados;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
 
 import negocio.entidade.*;
 
-import java.util.HashMap;
-
-
 public class RepositorioTarefas {
-  private Map<String, TarefaAntiga> tarefas = new HashMap<>();
-
-  public void inserirTarefa(TarefaAntiga tarefa) {
-    tarefas.put(tarefa.getID(), tarefa);
-  }
-
-  public TarefaAntiga buscarTarefaPorID(String id) {
-    return tarefas.get(id);
-  }
-
-  public List<TarefaAntiga> listarTarefasPorUsuario(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-      if (tarefa.getCriador().equals(usuario)) {
-        resultado.add(tarefa);
-      }
+    
+    private final Map<String, TarefaAbstrata> tarefas = new HashMap<>();
+    private final PersistenciaArquivo<TarefaAbstrata> persistencia;
+    
+    public RepositorioTarefas() {
+        this.persistencia = new PersistenciaArquivo<>("tarefas");
+        carregarDados();
     }
-    return resultado;
-  }
-
-  public boolean atualizarTarefa(TarefaAntiga tarefaAtualizada) {
-    if (tarefas.containsKey(tarefaAtualizada.getID())) {
-      tarefas.put(tarefaAtualizada.getID(), tarefaAtualizada);
-      return true;
+    
+    public RepositorioTarefas(PersistenciaArquivo<TarefaAbstrata> persistencia) {
+        this.persistencia = persistencia;
+        carregarDados();
     }
-    return false;
-  }
 
-  public boolean remover(String id) {
-    return tarefas.remove(id) != null;
-  }
+    // MÉTODOS BÁSICOS DE CRUD
+    
+    public void inserirTarefa(TarefaAbstrata tarefa) {
+        if (tarefa == null) {
+            throw new IllegalArgumentException("Tarefa não pode ser nula");
+        }
+        tarefas.put(tarefa.getId(), tarefa);
+        salvarDados();
+    }
 
-  public List<TarefaAntiga> buscarPorPrioridade(Usuario usuario, Prioridade prioridade) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-        if (tarefa.getCriador().equals(usuario) && tarefa.getPrioridade() == prioridade) {
-            resultado.add(tarefa);
+    public TarefaAbstrata buscarTarefaPorID(String id) {
+        return tarefas.get(id);
+    }
+    
+    public Optional<TarefaAbstrata> buscarPorId(String id) {
+        return Optional.ofNullable(tarefas.get(id));
+    }
+
+    public boolean atualizarTarefa(TarefaAbstrata tarefaAtualizada) {
+        if (tarefaAtualizada == null) {
+            throw new IllegalArgumentException("Tarefa não pode ser nula");
+        }
+        
+        if (tarefas.containsKey(tarefaAtualizada.getId())) {
+            tarefas.put(tarefaAtualizada.getId(), tarefaAtualizada);
+            salvarDados();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removerTarefa(String id) {
+        boolean removido = tarefas.remove(id) != null;
+        if (removido) {
+            salvarDados();
+        }
+        return removido;
+    }
+    
+    public List<TarefaAbstrata> listarTodas() {
+        return new ArrayList<>(tarefas.values());
+    }
+    
+    public int getTotalTarefas() {
+        return tarefas.size();
+    }
+    
+    // MÉTODOS PARA FILTRAGEM POR USUÁRIO
+    
+    public List<TarefaAbstrata> listarTarefasPorUsuario(Usuario usuario) {
+        List<TarefaAbstrata> resultado = new ArrayList<>();
+        if (usuario != null) {
+            for (TarefaAbstrata tarefa : tarefas.values()) {
+                if (tarefa.getCriador().equals(usuario)) {
+                    resultado.add(tarefa);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade, Usuario usuario) {
+        List<TarefaAbstrata> resultado = new ArrayList<>();
+        if (prioridade != null && usuario != null) {
+            for (TarefaAbstrata tarefa : tarefas.values()) {
+                if (tarefa.getPrioridade() == prioridade && tarefa.getCriador().equals(usuario)) {
+                    resultado.add(tarefa);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    public List<TarefaAbstrata> listarPorStatus(Status status, Usuario usuario) {
+        List<TarefaAbstrata> resultado = new ArrayList<>();
+        if (status != null && usuario != null) {
+            for (TarefaAbstrata tarefa : tarefas.values()) {
+                if (tarefa.getStatus() == status && tarefa.getCriador().equals(usuario)) {
+                    resultado.add(tarefa);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    public List<TarefaAbstrata> listarPorTipo(String tipo, Usuario usuario) {
+        List<TarefaAbstrata> resultado = new ArrayList<>();
+        if (tipo != null && usuario != null) {
+            for (TarefaAbstrata tarefa : tarefas.values()) {
+                if (tarefa.getTipo().equals(tipo) && tarefa.getCriador().equals(usuario)) {
+                    resultado.add(tarefa);
+                }
+            }
+        }
+        return resultado;
+    }
+
+    public List<TarefaAbstrata> listarPorCategoria(Categoria categoria, Usuario usuario) {
+        List<TarefaAbstrata> resultado = new ArrayList<>();
+        if (categoria != null && usuario != null) {
+            for (TarefaAbstrata tarefa : tarefas.values()) {
+                if (categoria.equals(tarefa.getCategoria()) && tarefa.getCriador().equals(usuario)) {
+                    resultado.add(tarefa);
+                }
+            }
+        }
+        return resultado;
+    }
+    
+    // MÉTODOS PARA FILTRAGEM POR STATUS ESPECÍFICOS
+    
+    public List<TarefaAbstrata> buscarConcluidas(Usuario usuario) {
+        return listarPorStatus(Status.CONCLUIDA, usuario);
+    }
+    
+    public List<TarefaAbstrata> buscarPendentes(Usuario usuario) {
+        return listarPorStatus(Status.PENDENTE, usuario);
+    }
+    
+
+    
+    // MÉTODOS DE PERSISTÊNCIA
+    
+    private void carregarDados() {
+        try {
+            List<TarefaAbstrata> tarefasCarregadas = persistencia.carregar();
+            tarefas.clear();
+            
+            int maxIdTarefa = 0;
+            for (TarefaAbstrata tarefa : tarefasCarregadas) {
+                tarefas.put(tarefa.getId(), tarefa);
+                
+                int numeroId = GeradorId.extrairNumeroId(tarefa.getId());
+                maxIdTarefa = Math.max(maxIdTarefa, numeroId);
+            }
+            
+            if (maxIdTarefa > 0) {
+                GeradorId.sincronizarContadorTarefas(maxIdTarefa);
+            }
+            
+        } catch (PersistenciaException e) {
+            System.err.println("Erro ao carregar tarefas: " + e.getMessage());
         }
     }
-    return resultado;
-  }
-
-  public List<TarefaAntiga> buscarConcluidas(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-      if (tarefa.getCriador().equals(usuario) && tarefa.isConcluida()) {
-        resultado.add(tarefa);
-      }
-    }
-    return resultado;
-  }
-
-   public List<TarefaAntiga> buscarPendentes(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-      if (tarefa.getCriador().equals(usuario) && !tarefa.isConcluida()) {
-        resultado.add(tarefa);
-      }
-    }
-    return resultado;
-  }
-
-  public List<TarefaAntiga> buscarAtrasadas(Usuario usuario) {
-    List<TarefaAntiga> resultado = new ArrayList<>();
-    for (TarefaAntiga tarefa : tarefas.values()) {
-        if (tarefa.getCriador().equals(usuario) && tarefa.isAtrasada()) {
-            resultado.add(tarefa);
+    
+    private void salvarDados() {
+        try {
+            List<TarefaAbstrata> listaTarefas = new ArrayList<>(tarefas.values());
+            persistencia.salvar(listaTarefas);
+            
+        } catch (PersistenciaException e) {
+            System.err.println("Erro ao salvar tarefas: " + e.getMessage());
         }
     }
-    return resultado;
-}
+    
+    public void limparTodos() {
+        try {
+            tarefas.clear();
+            persistencia.limparDados();
+            
+        } catch (PersistenciaException e) {
+            System.err.println("Erro ao limpar dados de tarefas: " + e.getMessage());
+        }
+    }
+
 }
