@@ -46,7 +46,7 @@ public final class UtilitariosInterface {
                 scanner.nextLine(); // << PONTO CRÍTICO: Consome o '\n' deixado pelo nextInt().
                 return numero;
             } else {
-                System.out.println("❌ Entrada inválida. Por favor, digite apenas um número inteiro.");
+                System.out.println("❌ Valor inválido. Por favor, preencha apenas um número inteiro.");
                 scanner.nextLine(); // Descarta a entrada inválida.
             }
         }
@@ -92,7 +92,7 @@ public final class UtilitariosInterface {
             try {
                 return LocalDateTime.parse(entrada, FORMATO_DATA_HORA);
             } catch (DateTimeParseException e) {
-                System.out.println("❌ Formato de data e hora inválido. Tente novamente.");
+                System.out.println("❌ O formato não é válido. Por favor, use o padrão (dd/MM/yyyy HH:mm).");
             }
         }
     }
@@ -220,7 +220,7 @@ public static Period lerPeriodicidade(Scanner scanner) {
             case "MENSAL":
                 return Period.ofMonths(1);
             default:
-                System.out.println("❌ Periodicidade inválida. Por favor, escolha uma das opções listadas.");
+                System.out.println("❌ A periodicidade não é válida. Por favor, escolha uma das opções listadas.");
         }
     }
 }
@@ -238,10 +238,10 @@ public static Duration lerDuracao(Scanner scanner) {
                 if (horas > 0) {
                     return Duration.ofHours(horas);
                 } else {
-                    System.out.println("❌ A duração deve ser um número positivo. Tente novamente.");
+                    System.out.println("❌ A duração é inválida. Por favor, preencha com um número não nulo e positivo.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("❌ Entrada inválida. Por favor, digite apenas o número de horas.");
+                System.out.println("❌ A duração é inválida. Por favor, preencha apenas o número de horas.");
             }
         }
     }

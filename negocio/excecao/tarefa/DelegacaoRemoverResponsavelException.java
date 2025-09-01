@@ -6,7 +6,7 @@ import negocio.entidade.Usuario;
 public class DelegacaoRemoverResponsavelException extends TarefaException {
 
     public DelegacaoRemoverResponsavelException(Usuario responsavel) {
-        super("O "+ responsavel+" é o responsável original. Somente os tercerizados podem ser removidos. Por favor, verifique os responsaveis.");
+        super("O "+ responsavel +" é o responsável original. Somente os tercerizados podem ser removidos. Por favor, verifique os responsaveis.");
     }
 
 }

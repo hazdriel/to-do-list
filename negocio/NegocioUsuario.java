@@ -44,7 +44,7 @@ public class NegocioUsuario {
     return repositorio.existeUsuario(email);
   }
 
-  public void cadastrarUsuario(String nome, String email, String senha) throws NomeVazioException, EmailVazioException, SenhaVaziaException, UsuarioExistenteException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, EmailFormatoInvalidoException {
+  public void cadastrarUsuario(String nome, String email, String senha) throws NomeVazioException, EmailVazioException, SenhaVaziaException, UsuarioExistenteException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, EmailFormatoInvalidoException, UsuarioVazioException {
     if (nome == null || nome.trim().isEmpty()) {
       throw new NomeVazioException();
     }

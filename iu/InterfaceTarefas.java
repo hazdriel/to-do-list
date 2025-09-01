@@ -2,6 +2,10 @@ package iu;
 
 import fachada.Gerenciador;
 import negocio.entidade.*;
+import negocio.excecao.categoria.CategoriaVaziaException;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.tarefa.*;
+
 import java.time.Period;
 import java.util.Scanner;
 import java.time.Duration;
@@ -109,8 +113,8 @@ private void exibirMenuCriacaoTarefa() {
         try {
             gerenciador.criarTarefaSimples(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria);
             System.out.println("\n✅ Tarefa simples criada com sucesso!");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
+        } catch (CriadorVazioException | SessaoJaInativaException | TarefaVaziaException | TituloVazioException | PrioridadeVaziaException e) {
+            System.out.println("\n❌ Erro ao criar tarefa simples: " + e.getMessage());
         }
     }
 
@@ -126,21 +130,25 @@ private void exibirMenuCriacaoTarefa() {
         try {
             gerenciador.criarTarefaDelegavel(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel);
             System.out.printf("\n✅ Tarefa delegável criada com sucesso para %s!\n", responsavel.getNome());
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
+        } catch (CriadorVazioException | SessaoJaInativaException | TarefaVaziaException | TituloVazioException |
+                DelegacaoResponsavelVazioException | PrioridadeVaziaException e) {
+            System.out.println("\n❌ Erro ao criar tarefa delegável: " + e.getMessage());
         }
     }
 
     private void criarTarefaRecorrente() {
         UtilitariosInterface.limparTela();
         System.out.println("--- CRIAR TAREFA RECORRENTE ---");
+
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         Period periodicidade = UtilitariosInterface.lerPeriodicidade(scanner);
+
         try {
             gerenciador.criarTarefaRecorrente(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, periodicidade);
             System.out.println("\n✅ Tarefa recorrente criada com sucesso!");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
+        } catch (CriadorVazioException | SessaoJaInativaException | TarefaVaziaException |
+                 RecorrentePeriodicidadeException | TituloVazioException | PrioridadeVaziaException e) {
+            System.out.println("\n❌ Erro ao criar tarefa recorrente: " + e.getMessage());
         }
     }
 
@@ -151,11 +159,13 @@ private void exibirMenuCriacaoTarefa() {
         System.out.println("Defina o prazo final da tarefa:");
         LocalDateTime prazoFinal = UtilitariosInterface.lerDataHora(scanner);
         Duration estimativa = UtilitariosInterface.lerDuracao(scanner);
+
         try {
             gerenciador.criarTarefaTemporizada(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, prazoFinal, estimativa);
             System.out.println("\n✅ Tarefa temporizada criada com sucesso!");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
+        } catch (CriadorVazioException | TarefaVaziaException | TemporizadaEstimativaException | PrazoVazioException |
+                 PrioridadeVaziaException | SessaoJaInativaException | PrazoInvalidoException | TituloVazioException e) {
+            System.out.println("\n❌ Erro ao criar tarefa temporizada: " + e.getMessage());
         }
     }
 
@@ -166,6 +176,7 @@ private void exibirMenuCriacaoTarefa() {
 private void adicionarResponsavel(Delegavel tarefa) {
     System.out.println("\nSelecione o utilizador para adicionar como responsável:");
     Usuario novoResponsavel = selecionarUsuario();
+
     if (novoResponsavel == null) {
         System.out.println("Nenhum utilizador selecionado. Operação cancelada.");
         return; // Retorna se a seleção foi cancelada
@@ -175,9 +186,11 @@ private void adicionarResponsavel(Delegavel tarefa) {
     // vou manter a modificação direta + salvar aqui para simplicidade. !!!!!!!!!!!!!!!!!!!!!!!!
     try {
         tarefa.adicionarResponsavel(novoResponsavel);
-        gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
+        gerenciador.salvarTarefa((TarefaAbstrata) tarefa);// Salva o estado modificado
         System.out.printf("\n✅ %s foi adicionado(a) como responsável.\n", novoResponsavel.getNome());
-    } catch (Exception e) {
+    } catch (TarefaIDVazioException | PrazoPassadoException | PrazoInvalidoException |TarefaIDNaoEncontradaException | DescricaoVaziaException |
+             DelegacaoResponsavelInvalidoException  | DelegacaoResponsavelVazioException |TituloVazioException  | CategoriaVaziaException  |
+             SessaoJaInativaException  |AtualizarTarefaException | TarefaIDNaoPertenceException e) {
         System.out.println("\n❌ Erro ao adicionar responsável: " + e.getMessage());
     }
 }
@@ -207,7 +220,9 @@ private void removerResponsavel(Delegavel tarefa) {
             tarefa.removerResponsavel(responsavelParaRemover);
             gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
             System.out.printf("\n✅ %s foi removido(a) como responsável.\n", responsavelParaRemover.getNome());
-        } catch (Exception e) {
+        } catch (TarefaIDVazioException | PrazoPassadoException | PrazoInvalidoException | TarefaIDNaoEncontradaException | DescricaoVaziaException |
+                 DelegacaoResponsavelInvalidoException  | DelegacaoResponsavelVazioException | TituloVazioException  | CategoriaVaziaException  |
+                 SessaoJaInativaException  | AtualizarTarefaException  | DelegacaoRemoverResponsavelException  | TarefaIDNaoPertenceException e) {
             System.out.println("\n❌ Erro ao remover responsável: " + e.getMessage());
         }
     } else {
@@ -242,7 +257,7 @@ private void removerResponsavel(Delegavel tarefa) {
 
         System.out.println("Nova categoria (" + tarefa.getCategoria().getNome() + "):");
         Categoria novaCategoria = selecionarCategoria();
-        
+
         try {
             boolean sucesso = gerenciador.atualizarTarefa(tarefa.getId(), novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
             if (sucesso) {
@@ -250,7 +265,8 @@ private void removerResponsavel(Delegavel tarefa) {
             } else {
                 System.out.println("\n❌ Não foi possível atualizar a tarefa.");
             }
-        } catch (Exception e) {
+        } catch (TarefaIDVazioException | PrazoPassadoException | PrazoInvalidoException | TarefaIDNaoEncontradaException | DescricaoVaziaException |
+                 TituloVazioException  | CategoriaVaziaException  | SessaoJaInativaException  | AtualizarTarefaException | TarefaIDNaoPertenceException e) {
             System.out.println("\n❌ Erro ao atualizar tarefa: " + e.getMessage());
         }
     }
@@ -266,7 +282,7 @@ private void removerResponsavel(Delegavel tarefa) {
         UtilitariosInterface.exibirTarefaResumo(tarefa);
         
         String confirmacao = UtilitariosInterface.lerString(scanner, "\n⚠️ Tem certeza? Digite 'SIM' para confirmar a remoção: ");
-        
+
         if (confirmacao.equalsIgnoreCase("SIM")) {
             try {
                 if (gerenciador.removerTarefa(tarefa.getId())) {
@@ -274,7 +290,13 @@ private void removerResponsavel(Delegavel tarefa) {
                 } else {
                     System.out.println("\n❌ Não foi possível remover a tarefa.");
                 }
-            } catch (Exception e) {
+            } catch (TarefaIDVazioException e) {
+                System.out.println("\n❌ Erro ao remover tarefa: " + e.getMessage());
+            } catch (TarefaIDNaoEncontradaException e) {
+                System.out.println("\n❌ Erro ao remover tarefa: " + e.getMessage());
+            } catch (SessaoJaInativaException e) {
+                System.out.println("\n❌ Erro ao remover tarefa: " + e.getMessage());
+            } catch (TarefaIDNaoPertenceException e) {
                 System.out.println("\n❌ Erro ao remover tarefa: " + e.getMessage());
             }
         } else {
@@ -289,18 +311,18 @@ private void removerResponsavel(Delegavel tarefa) {
     private void gerenciarStatusTarefa() {
         UtilitariosInterface.limparTela();
         System.out.println("--- ALTERAR STATUS DA TAREFA ---");
-        
-        TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
-        if (tarefa == null) return;
-        
-        System.out.println("\n1 -> Iniciar Tarefa");
-        System.out.println("2 -> Concluir Tarefa");
-        System.out.println("3 -> Cancelar Tarefa");
-        System.out.println("0 -> Voltar");
-        System.out.print("Escolha uma ação: ");
-        int opcao = UtilitariosInterface.lerInteiro(scanner);
-        
+
         try {
+            TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
+            if (tarefa == null) return;
+        
+            System.out.println("\n1 -> Iniciar Tarefa");
+            System.out.println("2 -> Concluir Tarefa");
+            System.out.println("3 -> Cancelar Tarefa");
+            System.out.println("0 -> Voltar");
+            System.out.print("Escolha uma ação: ");
+            int opcao = UtilitariosInterface.lerInteiro(scanner);
+
             boolean sucesso = false;
             String acao = "";
             switch (opcao) {
@@ -316,9 +338,10 @@ private void removerResponsavel(Delegavel tarefa) {
             } else {
                 System.out.printf("\n❌ Não foi possível alterar o status da tarefa para '%s'.\n", acao.toUpperCase());
             }
-
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao alterar o status: " + e.getMessage());
+        } catch (TarefaIDVazioException | TarefaIDNaoEncontradaException | SessaoJaInativaException |
+                 TarefaIDNaoPertenceException | IniciacaoInvalidaException | ConclusaoInvalidaException |
+                 RecorrenteExecucaoException | AtualizarTarefaException | CancelamentoInvalidoException e) {
+            System.out.println("\n❌ Erro ao alterar status: " + e.getMessage());
         }
     }
     
@@ -372,8 +395,10 @@ private void removerResponsavel(Delegavel tarefa) {
             } else {
                 System.out.println("\n❌ Não foi possível registrar o tempo de trabalho.");
             }
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao registrar trabalho: " + e.getMessage());
+        } catch (TarefaIDVazioException | TarefaIDNaoEncontradaException | SessaoJaInativaException |
+                 TarefaIDNaoPertenceException | TemporizadaNaoEException | TemporizadaDuracaoException |
+                 TemporizadaTempoException | TemporizadaEstimativaException | AtualizarTarefaException e) {
+            System.out.println("\n❌ Erro ao registrar tempo de trabalho: " + e.getMessage());
         }
     }
 
@@ -392,30 +417,45 @@ private void removerResponsavel(Delegavel tarefa) {
             System.out.println("❌ O ID não pode ser vazio.");
             return null;
         }
-        TarefaAbstrata tarefa = gerenciador.buscarTarefa(id);
-        if (tarefa == null) {
-            System.out.println("❌ Tarefa com ID '" + id + "' não encontrada.");
+        try {
+            return gerenciador.buscarTarefa(id);
+        } catch (TarefaIDVazioException e) {
+            System.out.println("\n❌ Erro ao buscar tarefa: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao buscar tarefa: " + e.getMessage());
+        } catch (TarefaIDNaoEncontradaException e) {
+            System.out.println("\n❌ Erro ao buscar tarefa: " + e.getMessage());
+        } catch (TarefaIDNaoPertenceException e) {
+            System.out.println("\n❌ Erro ao buscar tarefa: " + e.getMessage());
         }
-        return tarefa;
+        return null;
     }
     
     private Categoria selecionarCategoria() {
         System.out.println("\nSelecione uma Categoria:");
-        List<Categoria> categorias = gerenciador.listarCategorias();
-        if (categorias.isEmpty()) {
-            System.out.println("Nenhuma categoria encontrada. Crie uma primeiro.");
+        try {
+            List<Categoria> categorias = null;
+            categorias = gerenciador.listarCategorias();
+
+            if (categorias.isEmpty()) {
+                System.out.println("Nenhuma categoria encontrada. Crie uma primeiro.");
+                return null;
+            }
+            for (int i = 0; i < categorias.size(); i++) {
+                System.out.printf("%d -> %s\n", (i + 1), categorias.get(i).getNome());
+            }
+            System.out.print("Escolha uma opção: ");
+            int escolha = UtilitariosInterface.lerInteiro(scanner);
+            if (escolha > 0 && escolha <= categorias.size()) {
+                return categorias.get(escolha - 1);
+            }
+            System.out.println("❌ Opção inválida. A usar a primeira categoria da lista.");
+
+            return categorias.get(0);
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao selecionar categoria: " + e.getMessage());
             return null;
         }
-        for (int i = 0; i < categorias.size(); i++) {
-            System.out.printf("%d -> %s\n", (i + 1), categorias.get(i).getNome());
-        }
-        System.out.print("Escolha uma opção: ");
-        int escolha = UtilitariosInterface.lerInteiro(scanner);
-        if (escolha > 0 && escolha <= categorias.size()) {
-            return categorias.get(escolha - 1);
-        }
-        System.out.println("❌ Opção inválida. A usar a primeira categoria da lista.");
-        return categorias.get(0);
     }
     
     private Usuario selecionarUsuario() {
@@ -423,11 +463,13 @@ private void removerResponsavel(Delegavel tarefa) {
         for (int i = 0; i < usuarios.size(); i++) {
             System.out.printf("%d -> %s (%s)\n", (i + 1), usuarios.get(i).getNome(), usuarios.get(i).getEmail());
         }
+
         System.out.print("Escolha um utilizador: ");
         int escolha = UtilitariosInterface.lerInteiro(scanner);
         if (escolha > 0 && escolha <= usuarios.size()) {
             return usuarios.get(escolha - 1);
         }
+
         System.out.println("❌ Opção inválida. Operação cancelada.");
         return null;
     }

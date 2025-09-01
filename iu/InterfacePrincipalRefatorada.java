@@ -2,6 +2,8 @@ package iu;
 
 import fachada.Gerenciador;
 import negocio.entidade.Usuario;
+import negocio.excecao.sessao.SessaoJaInativaException;
+
 import java.util.Scanner;
 
 /**
@@ -58,6 +60,7 @@ public final class InterfacePrincipalRefatorada {
         UtilitariosInterface.limparTela();
         System.out.println("👋 Obrigado por usar o sistema! Até a próxima.");
         scanner.close();
+
     }
     
     /**
@@ -80,18 +83,24 @@ public final class InterfacePrincipalRefatorada {
         int opcao = UtilitariosInterface.lerInteiro(scanner);
         
         processarOpcaoDoMenuPrincipal(opcao);
+
     }
 
     /**
      * Exibe o cabeçalho padronizado do menu principal, com as informações do utilizador.
      */
     private void exibirCabecalhoDoMenu() {
-        System.out.println("=".repeat(50));
-        System.out.println("              🎯 MENU PRINCIPAL 🎯");
-        System.out.println("=".repeat(50));
-        Usuario usuarioLogado = gerenciador.getUsuarioLogado();
-        System.out.printf("👤 Utilizador: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
-        System.out.println("-".repeat(50));
+        try {
+            System.out.println("=".repeat(50));
+            System.out.println("              🎯 MENU PRINCIPAL 🎯");
+            System.out.println("=".repeat(50));
+            Usuario usuarioLogado = null;
+            usuarioLogado = gerenciador.getUsuarioLogado();
+            System.out.printf("👤 Utilizador: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
+            System.out.println("-".repeat(50));
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao exibir menu: " + e.getMessage());
+        }
     }
 
     /**
@@ -124,23 +133,28 @@ public final class InterfacePrincipalRefatorada {
      * Exibe as informações de perfil do utilizador logado.
      */
     private void exibirPerfilUsuario() {
-        Usuario usuario = gerenciador.getUsuarioLogado();
-        
-        UtilitariosInterface.limparTela();
-        System.out.println("=".repeat(40));
-        System.out.println("           👤 PERFIL DO UTILIZADOR 👤");
-        System.out.println("=".repeat(40));
-        
-        System.out.printf("ID:    %s\n", usuario.getId());
-        System.out.printf("Nome:  %s\n", usuario.getNome());
-        System.out.printf("Email: %s\n", usuario.getEmail());
-        
-        // Delega a exibição das estatísticas para o módulo de relatórios,
-        // mantendo a responsabilidade de cada classe bem definida.
-        System.out.println("\n--- Estatísticas Resumidas ---");
-        interfaceRelatorios.exibirEstatisticasResumidas(); // Assumindo que este método existe.
-        
-        System.out.println("\n" + "=".repeat(40));
-        UtilitariosInterface.pressioneEnterParaContinuar(scanner);
+        try {
+            Usuario usuario = gerenciador.getUsuarioLogado();
+
+            UtilitariosInterface.limparTela();
+            System.out.println("=".repeat(40));
+            System.out.println("           👤 PERFIL DO UTILIZADOR 👤");
+            System.out.println("=".repeat(40));
+
+            System.out.printf("ID:    %s\n", usuario.getId());
+            System.out.printf("Nome:  %s\n", usuario.getNome());
+            System.out.printf("Email: %s\n", usuario.getEmail());
+
+            // Delega a exibição das estatísticas para o módulo de relatórios,
+            // mantendo a responsabilidade de cada classe bem definida.
+            System.out.println("\n--- Estatísticas Resumidas ---");
+            interfaceRelatorios.exibirEstatisticasResumidas(); // Assumindo que este método existe.
+
+            System.out.println("\n" + "=".repeat(40));
+            UtilitariosInterface.pressioneEnterParaContinuar(scanner);
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Erro ao exibir perfil: " + e.getMessage());
+        }
+
     }
 }

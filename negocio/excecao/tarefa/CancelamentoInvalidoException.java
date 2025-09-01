@@ -4,7 +4,7 @@ package negocio.excecao.tarefa;
 public class CancelamentoInvalidoException extends TarefaException {
 
     public CancelamentoInvalidoException(String titulo){
-        super("A tarefa "+ titulo +" está concluída, não pode ser cancelada. Por favor, verifique o status.");
+        super("A tarefa "+ titulo +" não pode ser cancelada. Tarefas concluídas não podem ser canceladas. Por favor, verifique o status.");
     }
 
 }

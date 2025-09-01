@@ -3,7 +3,7 @@ package negocio;
 import negocio.entidade.Usuario;
 import negocio.excecao.sessao.SessaoJaInativaException;
 import negocio.excecao.sessao.NegocioUsuarioVazioException;
-import negocio.excecao.sessao.LoginJaAtivoException;
+import negocio.excecao.sessao.SessaoJaAtivoException;
 import negocio.excecao.usuario.*;
 
 /**
@@ -32,9 +32,9 @@ public class NegocioSessao {
         return usuarioLogado;
     }
     
-    public boolean autenticar(String email, String senha) throws LoginJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
+    public boolean autenticar(String email, String senha) throws SessaoJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
         if (estaLogado()) {
-            throw new LoginJaAtivoException();
+            throw new SessaoJaAtivoException();
         }
         
         Usuario usuario = negocioUsuario.validarCredenciais(email, senha);
