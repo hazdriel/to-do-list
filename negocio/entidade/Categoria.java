@@ -1,5 +1,8 @@
 package negocio.entidade;
 
+import negocio.excecao.categoria.CategoriaVaziaException;
+import negocio.excecao.tarefa.CriadorVazioException;
+
 import java.io.Serializable;
 
 public class Categoria implements Serializable {
@@ -8,21 +11,21 @@ public class Categoria implements Serializable {
   private boolean isPadrao;
   private Usuario criador;
 
-  public Categoria(String nome) throws IllegalArgumentException{
+  public Categoria(String nome) throws CategoriaVaziaException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+      throw new CategoriaVaziaException();
     }
     this.nome = nome.trim();
     this.isPadrao = true;  // Por padrão, é categoria do sistema
     this.criador = null;   // Categoria do sistema não tem criador
   }
   
-  public Categoria(String nome, Usuario criador) throws IllegalArgumentException{
+  public Categoria(String nome, Usuario criador) throws CategoriaVaziaException, CriadorVazioException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+      throw new CategoriaVaziaException();
     }
     if (criador == null) {
-      throw new IllegalArgumentException("Criador da categoria não pode ser nulo");
+      throw new CriadorVazioException();
     }
     this.nome = nome.trim();
     this.isPadrao = false; 
@@ -33,9 +36,9 @@ public class Categoria implements Serializable {
     return nome;
   }
 
-  public void setNome(String nome) throws IllegalArgumentException{
+  public void setNome(String nome) throws CategoriaVaziaException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+      throw new CategoriaVaziaException();
     }
     this.nome = nome.trim();
   }

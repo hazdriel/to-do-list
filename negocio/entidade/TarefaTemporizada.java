@@ -1,5 +1,7 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,19 +18,19 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, De
     private Duration tempoGasto;
 
     public TarefaTemporizada(String titulo, String descricao, LocalDateTime prazo, Prioridade prioridade, Categoria categoria,
-        Usuario criador, LocalDateTime prazoFinal, Duration estimativa) throws IllegalArgumentException {
+        Usuario criador, LocalDateTime prazoFinal, Duration estimativa) throws CriadorVazioException, TituloVazioException, PrazoVazioException, TemporizadaEstimativaException, PrazoInvalidoException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (prazoFinal == null) {
-            throw new IllegalArgumentException("Prazo final não pode ser nulo");
+            throw new PrazoVazioException();
         }
         
         if (estimativa == null || estimativa.isNegative()) {
-            throw new IllegalArgumentException("Estimativa deve ser positiva e não nula");
+            throw new TemporizadaEstimativaException();
         }
         
         if (prazoFinal.isBefore(prazo)) {
-            throw new IllegalArgumentException("Prazo final não pode ser anterior ao prazo inicial");
+            throw new PrazoInvalidoException(prazo, prazoFinal);
         }
         
         this.prazoFinal = prazoFinal;
@@ -79,59 +81,58 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, De
     }
 
     @Override
-    public void setTempoGasto(Duration tempoGasto) throws IllegalArgumentException, IllegalStateException {
-        if (tempoGasto == null) {
-            throw new IllegalArgumentException("Tempo gasto não pode ser nulo");
+    public void setTempoGasto(Duration tempoGasto)
+            throws TemporizadaTempoException, AtualizarTarefaException {
+        if (tempoGasto == null || tempoGasto.isNegative()) {
+            throw new TemporizadaTempoException();
         }
-        
-        if (tempoGasto.isNegative()) {
-            throw new IllegalArgumentException("Tempo gasto não pode ser negativo");
-        }
-        
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar tempo gasto de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         this.tempoGasto = tempoGasto;
     }
 
     @Override
-    public void setEstimativa(Duration estimativa) throws IllegalArgumentException, IllegalStateException {
+    public void setEstimativa(Duration estimativa)
+            throws TemporizadaEstimativaException, AtualizarTarefaException {
         if (estimativa == null || estimativa.isNegative()) {
-            throw new IllegalArgumentException("Estimativa deve ser positiva e não nula");
+            throw new TemporizadaEstimativaException();
         }
         
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar estimativa de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         this.estimativa = estimativa;
     }
 
     @Override
-    public void setPrazoFinal(LocalDateTime prazoFinal) throws IllegalArgumentException, IllegalStateException {
+    public void setPrazoFinal(LocalDateTime prazoFinal)
+            throws PrazoVazioException, AtualizarTarefaException, PrazoInvalidoException {
         if (prazoFinal == null) {
-            throw new IllegalArgumentException("Prazo final não pode ser nulo");
+            throw new PrazoVazioException();
         }
         
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar prazo final de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         if (prazoFinal.isBefore(getPrazo())) {
-            throw new IllegalArgumentException("Prazo final não pode ser anterior ao prazo inicial");
+            throw new PrazoInvalidoException(getPrazo(), prazoFinal);
         }
         
         this.prazoFinal = prazoFinal;
     }
 
-    public void registrarTrabalho(Duration duracao) throws IllegalArgumentException, IllegalStateException {
+    public void registrarTrabalho(Duration duracao)
+            throws TemporizadaDuracaoException, TemporizadaEstimativaException, TemporizadaTempoException, AtualizarTarefaException {
         if (duracao == null || duracao.isNegative()) {
-            throw new IllegalArgumentException("Duração deve ser positiva e não nula");
+            throw new TemporizadaDuracaoException();
         }
         
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível registrar trabalho em tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         Temporizada.super.registrarTrabalho(duracao);
@@ -144,4 +145,5 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, De
     public boolean ultrapassouEstimativa() {
         return Temporizada.super.ultrapassouEstimativa();
     }
+
 }

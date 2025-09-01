@@ -1,5 +1,7 @@
 package negocio.entidade;
 
+import negocio.excecao.usuario.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -14,7 +16,7 @@ public class Usuario implements Serializable {
   private static final Pattern EMAIL_PATTERN = 
     Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
-  public Usuario(String nome, String email, String senha) throws IllegalArgumentException {
+  public Usuario(String nome, String email, String senha) throws IllegalArgumentException, EmailVazioException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, SenhaVaziaException, NomeVazioException, EmailFormatoInvalidoException {
     validarParametrosObrigatorios(nome, email, senha);
     this.id = GeradorId.gerarIdUsuario();
     this.nome = nome.trim();
@@ -22,39 +24,42 @@ public class Usuario implements Serializable {
     this.senha = senha;
   }
 
-  private void validarParametrosObrigatorios(String nome, String email, String senha) throws IllegalArgumentException {
+  private void validarParametrosObrigatorios(String nome, String email, String senha) throws IllegalArgumentException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException, EmailVazioException, EmailFormatoInvalidoException, SenhaTamanhoInvalidoException, SenhaVaziaException {
     validarNome(nome);
     validarEmail(email);
     validarSenha(senha);
   }
   
-  private void validarNome(String nome) throws IllegalArgumentException {
+  private void validarNome(String nome) throws NomeVazioException, NomeApenasLetrasException, NomeTamanhoInvalidoException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome não pode ser vazio");
+      throw new NomeVazioException();
     }
     if (nome.trim().length() < 2) {
-      throw new IllegalArgumentException("Nome deve ter pelo menos 2 caracteres");
+      throw new NomeTamanhoInvalidoException(nome);
     }
     if (nome.trim().length() > 100) {
-      throw new IllegalArgumentException("Nome deve ter no máximo 100 caracteres");
+      throw new NomeTamanhoInvalidoException(nome);
+    }
+    if (!nome.matches("^[A-Za-zÀ-ÖØ-öø-ÿ\\s]+$")) {
+      throw new NomeApenasLetrasException(nome);
     }
   }
   
-  private void validarEmail(String email) throws IllegalArgumentException {
+  private void validarEmail(String email) throws EmailVazioException, EmailFormatoInvalidoException {
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email não pode ser vazio");
+      throw new EmailVazioException();
     }
     if (!EMAIL_PATTERN.matcher(email.trim()).matches()) {
-      throw new IllegalArgumentException("Email deve ter formato válido");
+      throw new EmailFormatoInvalidoException(email);
     }
   }
   
-  private void validarSenha(String senha) throws IllegalArgumentException {
-    if (senha == null || senha.length() < 6) {
-      throw new IllegalArgumentException("Senha deve ter pelo menos 6 caracteres");
+  private void validarSenha(String senha) throws SenhaVaziaException, SenhaTamanhoInvalidoException {
+    if (senha == null || senha.trim().isEmpty()) {
+      throw new SenhaVaziaException();
     }
-    if (senha.length() > 50) {
-      throw new IllegalArgumentException("Senha deve ter no máximo 50 caracteres");
+    if (senha.length() < 6 || senha.length() > 50) {
+      throw new SenhaTamanhoInvalidoException();
     }
   }
   
@@ -74,17 +79,17 @@ public class Usuario implements Serializable {
     return senha; 
   }
   
-  public void setNome(String nome) throws IllegalArgumentException {
+  public void setNome(String nome) throws IllegalArgumentException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException {
     validarNome(nome);
     this.nome = nome.trim();
   }
   
-  public void setEmail(String email) throws IllegalArgumentException {
+  public void setEmail(String email) throws IllegalArgumentException, EmailVazioException, EmailFormatoInvalidoException {
     validarEmail(email);
     this.email = email.trim().toLowerCase();
   }
   
-  public void setSenha(String senha) throws IllegalArgumentException {
+  public void setSenha(String senha) throws IllegalArgumentException, SenhaTamanhoInvalidoException, SenhaVaziaException {
     validarSenha(senha);
     this.senha = senha;
   }
@@ -105,4 +110,5 @@ public class Usuario implements Serializable {
   public int hashCode() {
     return Objects.hash(email);
   }
+
 }

@@ -1,5 +1,8 @@
 package negocio.entidade;
 
+import negocio.excecao.categoria.CategoriaVaziaException;
+import negocio.excecao.tarefa.*;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -21,12 +24,12 @@ public abstract class TarefaAbstrata implements Serializable {
     private LocalDateTime dataUltimaModificacao;
     
     public TarefaAbstrata(String titulo, String descricao, LocalDateTime prazo, 
-                  Prioridade prioridade, Categoria categoria, Usuario criador) throws IllegalArgumentException {
+                  Prioridade prioridade, Categoria categoria, Usuario criador) throws TituloVazioException, CriadorVazioException {
         if (titulo == null || titulo.trim().isEmpty()) {
-            throw new IllegalArgumentException("Título não pode ser vazio");
+            throw new TituloVazioException();
         }
         if (criador == null) {
-            throw new IllegalArgumentException("Criador não pode ser nulo");
+            throw new CriadorVazioException();
         }
         
         this.id = GeradorId.gerarIdTarefa();
@@ -49,9 +52,9 @@ public abstract class TarefaAbstrata implements Serializable {
     public abstract String getTipo();
     public abstract boolean podeSerDelegada();
 
-    public void concluir() throws IllegalStateException {
+    public void concluir() throws ConclusaoInvalidaException, RecorrenteExecucaoException, AtualizarTarefaException {
         if (this.status == Status.CANCELADA) {
-            throw new IllegalStateException("Não é possível concluir uma tarefa cancelada");
+            throw new ConclusaoInvalidaException(this.titulo);
         }
         this.status = Status.CONCLUIDA;
         if (this.dataFim == null) {
@@ -60,17 +63,17 @@ public abstract class TarefaAbstrata implements Serializable {
         touch();
     }
     
-    public void cancelar() throws IllegalStateException {
+    public void cancelar() throws CancelamentoInvalidoException {
         if (this.status == Status.CONCLUIDA) {
-            throw new IllegalStateException("Não é possível cancelar uma tarefa já concluída");
+            throw new CancelamentoInvalidoException(this.titulo);
         }
         this.status = Status.CANCELADA;
         touch();
     }
     
-    public void iniciar() throws IllegalStateException {
+    public void iniciar() throws IniciacaoInvalidaException {
         if (this.status != Status.PENDENTE) {
-            throw new IllegalStateException("Apenas tarefas pendentes podem ser iniciadas");
+            throw new IniciacaoInvalidaException(this.titulo);
         }
         this.status = Status.EM_PROGRESSO;
         if (this.dataInicio == null) {
@@ -106,33 +109,33 @@ public abstract class TarefaAbstrata implements Serializable {
         return this.status == status;
     }
     
-    public void setTitulo(String titulo) throws IllegalArgumentException {
+    public void setTitulo(String titulo) throws TituloVazioException {
         if (titulo == null || titulo.trim().isEmpty()) {
-            throw new IllegalArgumentException("Título não pode ser vazio");
+            throw new TituloVazioException();
         }
         this.titulo = titulo.trim();
         touch();
     }
     
-    public void setDescricao(String descricao) throws IllegalArgumentException {
+    public void setDescricao(String descricao) throws DescricaoVaziaException{
         if (descricao == null || descricao.trim().isEmpty()) {
-            throw new IllegalArgumentException("Descrição não pode ser vazia");
+            throw new DescricaoVaziaException();
         }
         this.descricao = descricao.trim();
         touch();
     }
     
-    public void setPrazo(LocalDateTime prazo) throws IllegalArgumentException, IllegalStateException {
+    public void setPrazo(LocalDateTime prazo) throws AtualizarTarefaException, PrazoPassadoException, PrazoInvalidoException{
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar prazo de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         if (prazo != null) {
             if (prazo.isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("Prazo não pode ser no passado");
+                throw new PrazoPassadoException(prazo);
             }
             if (prazo.isBefore(dataCriacao)) {
-                throw new IllegalArgumentException("Prazo não pode ser anterior à data de criação");
+                throw new PrazoInvalidoException(dataCriacao, prazo);
             }
         }
         
@@ -140,39 +143,39 @@ public abstract class TarefaAbstrata implements Serializable {
         touch();
     }
     
-    public void setPrioridade(Prioridade prioridade) throws IllegalArgumentException, IllegalStateException {
+    public void setPrioridade(Prioridade prioridade) throws AtualizarTarefaException {
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar prioridade de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         this.prioridade = prioridade != null ? prioridade : Prioridade.MEDIA;
         touch();
     }
 
-    public void setCategoria(Categoria categoria) throws IllegalArgumentException, IllegalStateException {
+    public void setCategoria(Categoria categoria) throws AtualizarTarefaException, CategoriaVaziaException {
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar categoria de tarefa finalizada");
+            throw new AtualizarTarefaException(titulo);
         }
         
         if (categoria == null) {
-            throw new IllegalArgumentException("Categoria não pode ser nula");
+            throw new CategoriaVaziaException();
         }
         
         this.categoria = categoria;
         touch();
     }
     
-    public void setStatus(Status status) throws IllegalArgumentException, IllegalStateException {
+    public void setStatus(Status status) throws StatusVazioException, AtualizarTarefaException {
         if (status == null) {
-            throw new IllegalArgumentException("Status não pode ser nulo");
+            throw new StatusVazioException();
         }
         
         if (this.status == Status.CONCLUIDA && status != Status.CONCLUIDA) {
-            throw new IllegalStateException("Não é possível alterar status de tarefa concluída");
+            throw new AtualizarTarefaException(titulo);
         }
         
         if (this.status == Status.CANCELADA && status != Status.CANCELADA) {
-            throw new IllegalStateException("Não é possível alterar status de tarefa cancelada");
+            throw new AtualizarTarefaException(titulo);
         }
         
         if (status == Status.EM_PROGRESSO && dataInicio == null) {

@@ -1,6 +1,8 @@
 
 package negocio.entidade;
 
+import negocio.excecao.tarefa.*;
+
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
@@ -18,11 +20,11 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
 
     public TarefaRecorrente(String titulo, String descricao, LocalDateTime prazo, 
                            Prioridade prioridade, Categoria categoria,
-                           Usuario criador, Period periodicidade) throws IllegalArgumentException {
+                           Usuario criador, Period periodicidade) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, RecorrentePeriodicidadeException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (periodicidade == null) {
-            throw new IllegalArgumentException("Periodicidade não pode ser nula");
+            throw new RecorrentePeriodicidadeException();
         }
         
         this.periodicidade = periodicidade;
@@ -67,34 +69,36 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
     }
 
     @Override
-    public void setProximaExecucao(LocalDateTime proximaExecucao) throws IllegalArgumentException {
+    public void setProximaExecucao(LocalDateTime proximaExecucao) throws RecorrenteExecucaoException, AtualizarTarefaException {
         if (proximaExecucao == null) {
-            throw new IllegalArgumentException("Próxima execução não pode ser nula");
+            throw new RecorrenteExecucaoException();
         }
         
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar próxima execução de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         this.proximaExecucao = proximaExecucao;
     }
 
     @Override
-    public void setPeriodicidade(Period periodicidade) throws IllegalArgumentException, IllegalStateException {
+    public void setPeriodicidade(Period periodicidade)
+            throws IllegalArgumentException, IllegalStateException, RecorrentePeriodicidadeException, AtualizarTarefaException {
         if (periodicidade == null) {
-            throw new IllegalArgumentException("Periodicidade não pode ser nula");
+            throw new RecorrentePeriodicidadeException();
         }
         
         if (!podeSerAlterada()) {
-            throw new IllegalStateException("Não é possível alterar periodicidade de tarefa finalizada");
+            throw new AtualizarTarefaException(getTitulo());
         }
         
         this.periodicidade = periodicidade;
     }
 
     @Override
-    public void concluir() {
+    public void concluir() throws ConclusaoInvalidaException, RecorrenteExecucaoException, AtualizarTarefaException {
         super.concluir();
         Recorrente.super.reagendarProximaExecucao();
     }
+
 }
