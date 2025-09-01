@@ -145,5 +145,20 @@ public class NegocioCategoria {
         Categoria categoria = repositorioCategorias.buscarCategoria(nomeCategoria);
         return categoria != null && categoria.isPadrao();
     }
+    
+    public void garantirCategoriasPadrao() {
+        String[] categoriasPadrao = {"Trabalho", "Estudo", "Pessoal"};
+        
+        for (String nomeCategoria : categoriasPadrao) {
+            if (!existeCategoria(nomeCategoria)) {
+                Categoria categoriaPadrao = new Categoria(nomeCategoria);
+                repositorioCategorias.inserirCategoria(categoriaPadrao);
+            }
+        }
+    }
+    
+    private boolean existeCategoria(String nomeCategoria) {
+        return repositorioCategorias.buscarCategoria(nomeCategoria) != null;
+    }
 }
 

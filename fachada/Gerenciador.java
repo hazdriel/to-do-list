@@ -39,6 +39,8 @@ public class Gerenciador {
         this.negocioTarefa = new NegocioTarefa(repositorioTarefas, negocioSessao);
         this.calculadoraEstatisticas = new CalculadoraEstatisticas(repositorioTarefas);
         this.negocioCategoria = new NegocioCategoria(repositorioCategorias, negocioSessao, negocioTarefa);
+        
+        negocioCategoria.garantirCategoriasPadrao();
     }
 
     // GERENCIAMENTO DE SESSÃO E AUTENTICAÇÃO
