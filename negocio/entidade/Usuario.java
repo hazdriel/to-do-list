@@ -1,12 +1,17 @@
 package negocio.entidade;
 
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
+<<<<<<< HEAD
 import negocio.excecao.usuario.*;
 
 public class Usuario {
+=======
+public class Usuario implements Serializable {
+  private static final long serialVersionUID = 1L;
+>>>>>>> ef077eb4f53aab0c1a39c79dd604d9ea3815df9e
   private String id;
   private String nome;
   private String email;
@@ -24,7 +29,7 @@ public class Usuario {
           throws EmailVazioException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException,
           NomeVazioException, EmailFormatoInvalidoException {
     validarParametrosObrigatorios(nome, email, senha);
-    this.id = UUID.randomUUID().toString();
+    this.id = GeradorId.gerarIdUsuario();
     this.nome = nome.trim();
     this.email = email.trim().toLowerCase();
     this.senha = senha;

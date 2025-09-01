@@ -1,4 +1,5 @@
 package main;
+<<<<<<< HEAD
 import dados.RepositorioTarefas;
 import dados.RepositorioUsuarios;
 import iu.TelaMenu;
@@ -7,10 +8,16 @@ import negocio.NegocioTarefa;
 import negocio.NegocioUsuario;
 import negocio.excecao.tarefa.*;
 import negocio.excecao.usuario.*;
+=======
+
+import fachada.Gerenciador;
+import iu.InterfacePrincipalRefatorada;
+>>>>>>> ef077eb4f53aab0c1a39c79dd604d9ea3815df9e
 
 public class Main {
   public static void main(String[] args) throws EmailVazioException, SenhaTamanhoInvalidoException, UsuarioExistenteException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException, EmailFormatoInvalidoException, UsuarioNaoEncontradoException, SenhaIncorretaException, CategoriaVaziaException, PrazoInvalidoException, TarefaIDNaoEncontradaException, TarefaIDNaoPertece, TituloVazioException {
     
+<<<<<<< HEAD
     RepositorioTarefas repositorioTarefas = new RepositorioTarefas();
     RepositorioUsuarios repositorioUsuarios = new RepositorioUsuarios();
 
@@ -23,6 +30,11 @@ public class Main {
     TelaMenu menu = new TelaMenu(tarefaService, usuarioService, sessao);
 
     menu.mostrarMenu();
+=======
+    Gerenciador gerenciador = new Gerenciador();
+        InterfacePrincipalRefatorada interfacePrincipal = new InterfacePrincipalRefatorada(gerenciador);
+        interfacePrincipal.executar();
+>>>>>>> ef077eb4f53aab0c1a39c79dd604d9ea3815df9e
 
   }
 }

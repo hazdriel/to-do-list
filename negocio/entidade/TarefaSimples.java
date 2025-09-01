@@ -7,7 +7,7 @@ import negocio.excecao.tarefa.TituloVazioException;
 
 import java.time.LocalDateTime;
 
-public class TarefaSimples extends Tarefa {
+public class TarefaSimples extends TarefaAbstrata {
 
   public TarefaSimples(String titulo, String descricao, LocalDateTime prazo, Prioridade prioridade, Categoria categoria, Usuario criador)
           throws IllegalArgumentException, CriadorVazioException, TituloVazioException, CategoriaVaziaException, PrazoInvalidoException {
