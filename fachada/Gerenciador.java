@@ -10,6 +10,11 @@ import negocio.CalculadoraEstatisticas;
 import negocio.DadosEstatisticos;
 import negocio.NegocioCategoria;
 import negocio.entidade.*;
+import negocio.excecao.categoria.*;
+import negocio.excecao.sessao.*;
+import negocio.excecao.tarefa.*;
+import negocio.excecao.usuario.*;
+
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.time.Period;
@@ -32,16 +37,18 @@ public class Gerenciador {
     private CalculadoraEstatisticas calculadoraEstatisticas;
     private NegocioCategoria negocioCategoria;
 
-    public Gerenciador() {
+    public Gerenciador() throws TarefaException, UsuarioException, CategoriaException, SessaoException {
+
         this.repositorioTarefas = new RepositorioTarefas();
         this.repositorioUsuarios = new RepositorioUsuarios();
         this.repositorioCategorias = new RepositorioCategorias();
+
         this.negocioUsuario = new NegocioUsuario(repositorioUsuarios);
         this.negocioSessao = new NegocioSessao(negocioUsuario);
         this.negocioTarefa = new NegocioTarefa(repositorioTarefas, negocioSessao);
         this.calculadoraEstatisticas = new CalculadoraEstatisticas(repositorioTarefas);
         this.negocioCategoria = new NegocioCategoria(repositorioCategorias, negocioSessao, negocioTarefa);
-        
+
         negocioCategoria.garantirCategoriasPadrao();
     }
 
@@ -49,12 +56,15 @@ public class Gerenciador {
     // GERENCIAMENTO DE SESSÃO E AUTENTICAÇÃO
     // ========================================
     
-    public boolean fazerLogin(String email, String senha) {
+    public boolean fazerLogin(String email, String senha) throws LoginJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
         return negocioSessao.autenticar(email, senha);
     }
 
     public void cadastrarUsuario(String nome, String email, String senha) 
-            throws IllegalArgumentException {
+            throws NomeVazioException, EmailVazioException, SenhaVaziaException, 
+                   UsuarioExistenteException, SenhaTamanhoInvalidoException, 
+                   NomeApenasLetrasException, NomeTamanhoInvalidoException, 
+                   EmailFormatoInvalidoException, UsuarioVazioException {
         negocioUsuario.cadastrarUsuario(nome, email, senha);
     }
 
@@ -62,21 +72,22 @@ public class Gerenciador {
         return negocioSessao.estaLogado();
     }
 
-    public Usuario getUsuarioLogado() {
+    public Usuario getUsuarioLogado() throws SessaoJaInativaException {
         return negocioSessao.getUsuarioLogado();
     }
 
-    public void fazerLogout() {
+    public void fazerLogout() throws SessaoJaInativaException {
         negocioSessao.logout();
     }
 
     public void alterarSenha(String senhaAtual, String novaSenha) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws SenhaIncorretaException, SenhaVaziaException, SenhaTamanhoInvalidoException, 
+                   SessaoJaInativaException, UsuarioVazioException {
         negocioSessao.alterarSenhaUsuarioLogado(senhaAtual, novaSenha);
     }
 
     public void excluirConta(String senhaConfirmacao) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws SenhaIncorretaException, SessaoJaInativaException, SenhaVaziaException, UsuarioVazioException {
         negocioSessao.excluirContaUsuarioLogado(senhaConfirmacao);
     }
 
@@ -86,26 +97,30 @@ public class Gerenciador {
     
     public void criarTarefaSimples(String titulo, String descricao, Prioridade prioridade, 
                                    LocalDateTime prazo, Categoria categoria) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
+                   TarefaVaziaException, CriadorVazioException {
         negocioTarefa.criarTarefaSimples(titulo, descricao, prioridade, prazo, categoria);
     }
 
     public void criarTarefaDelegavel(String titulo, String descricao, Prioridade prioridade, 
                                      LocalDateTime prazo, Categoria categoria, Usuario responsavel) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
+                   TarefaVaziaException, CriadorVazioException, DelegacaoResponsavelVazioException {
         negocioTarefa.criarTarefaDelegavel(titulo, descricao, prioridade, prazo, categoria, responsavel);
     }
 
     public void criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
                                       LocalDateTime prazo, Categoria categoria, Period periodicidade) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
+                   TarefaVaziaException, CriadorVazioException, RecorrentePeriodicidadeException {
         negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, periodicidade);
     }
 
     public void criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 
                                        LocalDateTime prazo, Categoria categoria, Duration duracaoSessao, 
                                        Duration duracaoPausa, int totalSessoes) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
+                   TarefaVaziaException, CriadorVazioException {
         negocioTarefa.criarTarefaTemporizada(titulo, descricao, prioridade, prazo, categoria, duracaoSessao, duracaoPausa, totalSessoes);
     }
 
@@ -113,58 +128,59 @@ public class Gerenciador {
     // CONSULTA E LISTAGEM DE TAREFAS
     // ========================================
     
-    public List<TarefaAbstrata> listarTarefas() {
+    public List<TarefaAbstrata> listarTarefas() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefas();
     }
 
     public TarefaAbstrata buscarTarefaPorId(String id) 
-            throws IllegalArgumentException {
+            throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
+                   TarefaIDNaoPertenceException {
         return negocioTarefa.buscarTarefaPorId(id);
     }
 
     // Listagens por critério
     public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, PrioridadeVaziaException {
         return negocioTarefa.listarPorPrioridade(prioridade);
     }
 
     public List<TarefaAbstrata> listarPorCategoria(Categoria categoria) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, CategoriaVaziaException {
         return negocioTarefa.listarTarefasPorCategoria(categoria);
     }
 
     public List<TarefaAbstrata> listarPorTipo(String tipo) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, TipoVazioException {
         return negocioTarefa.listarPorTipo(tipo);
     }
 
     // Listagens por status
-    public List<TarefaAbstrata> listarConcluidas() {
+    public List<TarefaAbstrata> listarConcluidas() throws SessaoJaInativaException {
         return negocioTarefa.listarConcluidas();
     }
 
-    public List<TarefaAbstrata> listarPendentes() {
+    public List<TarefaAbstrata> listarPendentes() throws SessaoJaInativaException {
         return negocioTarefa.listarPendentes();
     }
 
-    public List<TarefaAbstrata> listarAtrasadas() {
+    public List<TarefaAbstrata> listarAtrasadas() throws SessaoJaInativaException {
         return negocioTarefa.listarAtrasadas();
     }
 
     // Listagens relacionadas a delegação
-    public List<TarefaAbstrata> listarTarefasDelegadas() {
+    public List<TarefaAbstrata> listarTarefasDelegadas() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefasDelegadas();
     }
     
-    public List<TarefaAbstrata> listarTarefasDelegadasParaUsuario() {
+    public List<TarefaAbstrata> listarTarefasDelegadasParaUsuario() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefasDelegadasParaUsuario();
     }
     
-    public List<TarefaAbstrata> listarTarefasDoUsuario() {
+    public List<TarefaAbstrata> listarTarefasDoUsuario() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefasDoUsuario();
     }
     
-    public List<TarefaAbstrata> listarTarefasDelegadasPeloUsuario() {
+    public List<TarefaAbstrata> listarTarefasDelegadasPeloUsuario() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefasDelegadas();
     }
 
@@ -174,13 +190,26 @@ public class Gerenciador {
     
     public void atualizarTarefa(String id, String novoTitulo, String novaDescricao, 
                                Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TituloVazioException, DescricaoVaziaException, AtualizarTarefaException, 
+                   PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, 
+                   TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
+                   TarefaIDNaoPertenceException, TarefaVaziaException {
         negocioTarefa.atualizarTarefa(id, novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
     }
 
     public void removerTarefa(String id) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
+                   TarefaIDNaoPertenceException {
         negocioTarefa.removerTarefa(id);
+    }
+
+    public boolean salvarTarefa(TarefaAbstrata tarefa) throws TituloVazioException, DescricaoVaziaException, 
+            AtualizarTarefaException, PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, 
+            TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
+            TarefaIDNaoPertenceException, TarefaVaziaException {
+        if (tarefa == null) return false;
+        atualizarTarefa(tarefa.getId(), tarefa.getTitulo(), tarefa.getDescricao(), tarefa.getPrioridade(), tarefa.getPrazo(), tarefa.getCategoria());
+        return true;
     }
 
     // ========================================
@@ -188,25 +217,31 @@ public class Gerenciador {
     // ========================================
     
     public void concluirTarefa(String id) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws ConclusaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, 
+                   TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, 
+                   RecorrenteExecucaoException, AtualizarTarefaException, TarefaVaziaException {
         negocioTarefa.concluirTarefa(id);
     }
 
     public void iniciarTarefa(String id) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws IniciacaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, 
+                   TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
         negocioTarefa.iniciarTarefa(id);
     }
 
     public void cancelarTarefa(String id) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws CancelamentoInvalidoException, TarefaIDVazioException, SessaoJaInativaException, 
+                   TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
         negocioTarefa.cancelarTarefa(id);
     }
 
     public void delegarTarefa(String id, Usuario novoResponsavel) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws DelegacaoStatusInvalidoException, DelegacaoMotivoException, DelegacaoRegistroInvalidoException, 
+                   DelegacaoResponsavelInvalidoException, DelegacaoResponsavelVazioException,
+                   TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException,
+                   TarefaIDNaoPertenceException, DelegacaoInvalidaException, CriadorVazioException, TarefaVaziaException {
         negocioTarefa.delegarTarefa(id, novoResponsavel);
     }
-
 
 
     // ========================================
@@ -218,12 +253,12 @@ public class Gerenciador {
     }
     
     public Usuario buscarUsuarioPorId(String id) 
-            throws IllegalArgumentException {
+            throws IDUsuarioVazio {
         return negocioUsuario.buscarUsuarioPorId(id);
     }
     
     public Usuario buscarUsuarioPorEmail(String email) 
-            throws IllegalArgumentException {
+            throws EmailVazioException, UsuarioNaoEncontradoException {
         return negocioUsuario.buscarUsuarioPorEmail(email);
     }
 
@@ -231,21 +266,22 @@ public class Gerenciador {
     // GERENCIAMENTO DE CATEGORIAS
     // ========================================
   
-    public List<Categoria> listarCategorias() {
+    public List<Categoria> listarCategorias() throws SessaoJaInativaException {
         return negocioCategoria.listarCategoriasDoUsuario();
     }
     
     public Categoria criarCategoria(String nome) 
-            throws IllegalArgumentException {
+            throws CategoriaVaziaException, SessaoJaInativaException, CriadorVazioException {
         return negocioCategoria.criarCategoria(nome);
     }
 
     public void removerCategoria(String nomeCategoria) 
-            throws IllegalArgumentException, IllegalStateException {
+            throws CategoriaVaziaException, CategoriaNaoEncontrada, CategoriaNaoPertenceException, 
+                   CategoriaAtivaRemocaoException, SessaoJaInativaException, RepositorioCategoriaRemocaoException {
         negocioCategoria.removerCategoria(nomeCategoria);
     }
 
-    public boolean isCategoriaPadrao(String nomeCategoria) {
+    public boolean isCategoriaPadrao(String nomeCategoria) throws CategoriaVaziaException {
         return negocioCategoria.isCategoriaPadrao(nomeCategoria);
     }
     
@@ -254,27 +290,27 @@ public class Gerenciador {
     // ========================================
     
     public DadosEstatisticos obterEstatisticasProdutividade(LocalDateTime dataInicio, LocalDateTime dataFim) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, UsuarioVazioException {
         return calculadoraEstatisticas.calcularEstatisticas(negocioSessao.getUsuarioLogado(), dataInicio, dataFim);
     }
     
-    public DadosEstatisticos.TarefasAtencao obterTarefasQueNecessitamAtencao() {
+    public DadosEstatisticos.TarefasAtencao obterTarefasQueNecessitamAtencao() throws SessaoJaInativaException, UsuarioVazioException {
         DadosEstatisticos dados = calculadoraEstatisticas.calcularEstatisticas(negocioSessao.getUsuarioLogado(), null, null);
         return dados.getTarefasAtencao();
     }
     
     public Map<LocalDateTime, Long> obterProdutividadeTemporal(LocalDateTime dataInicio, LocalDateTime dataFim) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, UsuarioVazioException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorDia(negocioSessao.getUsuarioLogado(), dataInicio, dataFim);
     }
     
     public long contarTarefasConcluidasPorCategoria(Categoria categoria) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, UsuarioVazioException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorCategoria(negocioSessao.getUsuarioLogado(), categoria);
     }
     
     public long contarTarefasConcluidasPorPrioridade(Prioridade prioridade) 
-            throws IllegalArgumentException {
+            throws SessaoJaInativaException, UsuarioVazioException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorPrioridade(negocioSessao.getUsuarioLogado(), prioridade);
     }
 
@@ -282,7 +318,7 @@ public class Gerenciador {
     // CONTROLE DE SESSÕES POMODORO
     // ========================================
     
-    public List<TarefaTemporizada> listarTarefasTemporizadas() {
+    public List<TarefaTemporizada> listarTarefasTemporizadas() throws SessaoJaInativaException {
         return negocioTarefa.listarTarefasTemporizadas();
     }
     

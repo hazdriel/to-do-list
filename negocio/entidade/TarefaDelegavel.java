@@ -1,5 +1,9 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.CriadorVazioException;
+import negocio.excecao.tarefa.DelegacaoResponsavelVazioException;
+import negocio.excecao.tarefa.TituloVazioException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +20,11 @@ public class TarefaDelegavel extends TarefaAbstrata implements Delegavel {
 
     public TarefaDelegavel(String titulo, String descricao, LocalDateTime prazo, 
                            Prioridade prioridade, Categoria categoria, 
-                           Usuario criador, Usuario responsavel) throws IllegalArgumentException {
+                           Usuario criador, Usuario responsavel) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, DelegacaoResponsavelVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (responsavel == null) {
-            throw new IllegalArgumentException("Responsável não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         this.responsavelOriginal = responsavel;

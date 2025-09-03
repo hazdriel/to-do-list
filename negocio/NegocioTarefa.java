@@ -4,6 +4,11 @@ import dados.*;
 import java.util.List;
 import java.util.ArrayList;
 import negocio.entidade.*;
+import negocio.excecao.categoria.CategoriaVaziaException;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.sessao.SessaoNulaException;
+import negocio.excecao.tarefa.*;
+
 import java.time.LocalDateTime;
 
 /**
@@ -15,13 +20,13 @@ public class NegocioTarefa {
   private final RepositorioTarefas repositorioTarefas;
   private final NegocioSessao sessao;
 
-  public NegocioTarefa(RepositorioTarefas repositorioTarefas, NegocioSessao sessao) 
-      throws IllegalArgumentException {
+  public NegocioTarefa(RepositorioTarefas repositorioTarefas, NegocioSessao sessao)
+          throws SessaoNulaException, RepositorioTarefasVazioException {
     if (repositorioTarefas == null) {
-      throw new IllegalArgumentException("Repositório de tarefas não pode ser nulo");
+      throw new RepositorioTarefasVazioException();
     }
     if (sessao == null) {
-      throw new IllegalArgumentException("Sessão não pode ser nula");
+      throw new SessaoNulaException();
     }
     
     this.repositorioTarefas = repositorioTarefas;
@@ -31,8 +36,8 @@ public class NegocioTarefa {
   // MÉTODOS DE CRIAÇÃO DE TAREFAS
   
   public TarefaSimples criarTarefaSimples(String titulo, String descricao, Prioridade prioridade, 
-                                          LocalDateTime prazo, Categoria categoria) 
-      throws IllegalArgumentException, IllegalStateException {
+                                          LocalDateTime prazo, Categoria categoria)
+          throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, TarefaVaziaException, CriadorVazioException {
     validarParametrosCriacao(titulo, prioridade);
     verificarSessaoAtiva();
     
@@ -42,8 +47,8 @@ public class NegocioTarefa {
   }
 
   public TarefaDelegavel criarTarefaDelegavel(String titulo, String descricao, Prioridade prioridade, 
-                                              LocalDateTime prazo, Categoria categoria, Usuario responsavel) 
-      throws IllegalArgumentException, IllegalStateException {
+                                              LocalDateTime prazo, Categoria categoria, Usuario responsavel)
+          throws TituloVazioException, PrioridadeVaziaException, DelegacaoResponsavelVazioException, SessaoJaInativaException, CriadorVazioException, TarefaVaziaException {
     validarParametrosCriacao(titulo, prioridade);
     validarResponsavel(responsavel);
     verificarSessaoAtiva();
@@ -54,8 +59,8 @@ public class NegocioTarefa {
   }
 
   public TarefaRecorrente criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
-                                                 LocalDateTime prazo, Categoria categoria, java.time.Period periodicidade) 
-      throws IllegalArgumentException, IllegalStateException {
+                                                 LocalDateTime prazo, Categoria categoria, java.time.Period periodicidade)
+          throws TituloVazioException, PrioridadeVaziaException, RecorrentePeriodicidadeException, SessaoJaInativaException, TarefaVaziaException, CriadorVazioException {
     validarParametrosCriacao(titulo, prioridade);
     validarPeriodicidade(periodicidade);
     verificarSessaoAtiva();
@@ -68,7 +73,7 @@ public class NegocioTarefa {
   public TarefaTemporizada criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 
                                                   LocalDateTime prazo, Categoria categoria, java.time.Duration duracaoSessao, 
                                                   java.time.Duration duracaoPausa, int totalSessoes) 
-      throws IllegalArgumentException, IllegalStateException {
+      throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, TarefaVaziaException, CriadorVazioException {
     validarParametrosCriacao(titulo, prioridade);
     verificarSessaoAtiva();
     
@@ -77,39 +82,39 @@ public class NegocioTarefa {
     return tarefa;
   }
   
-  private void criarTarefa(TarefaAbstrata tarefa) throws IllegalArgumentException {
+  private void criarTarefa(TarefaAbstrata tarefa) throws TarefaVaziaException {
     if (tarefa == null) {
-      throw new IllegalArgumentException("Tarefa não pode ser nula");
+      throw new TarefaVaziaException();
     }
     repositorioTarefas.inserirTarefa(tarefa);
   }
 
   // MÉTODOS DE LISTAGEM E CONSULTA
   
-  public List<TarefaAbstrata> listarTarefas() throws IllegalStateException {
+  public List<TarefaAbstrata> listarTarefas() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     return repositorioTarefas.listarTarefasPorUsuario(sessao.getUsuarioLogado());
   }
 
-  public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade) throws IllegalArgumentException, IllegalStateException {
+  public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade) throws SessaoJaInativaException, PrioridadeVaziaException {
     if (prioridade == null) {
-      throw new IllegalArgumentException("Prioridade não pode ser nula");
+      throw new PrioridadeVaziaException();
     }
     verificarSessaoAtiva();
     return repositorioTarefas.listarPorPrioridade(prioridade, sessao.getUsuarioLogado());
   }
 
-  public List<TarefaAbstrata> listarConcluidas() throws IllegalStateException {
+  public List<TarefaAbstrata> listarConcluidas() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     return repositorioTarefas.buscarConcluidas(sessao.getUsuarioLogado());
   }
 
-  public List<TarefaAbstrata> listarPendentes() throws IllegalStateException {
+  public List<TarefaAbstrata> listarPendentes() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     return repositorioTarefas.buscarPendentes(sessao.getUsuarioLogado());
   }
 
-  public List<TarefaAbstrata> listarAtrasadas() throws IllegalStateException {
+  public List<TarefaAbstrata> listarAtrasadas() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     List<TarefaAbstrata> pendentes = repositorioTarefas.buscarPendentes(sessao.getUsuarioLogado());
     
@@ -125,17 +130,17 @@ public class NegocioTarefa {
     return atrasadas;
   }
 
-  public List<TarefaAbstrata> listarPorTipo(String tipo) throws IllegalArgumentException, IllegalStateException {
+  public List<TarefaAbstrata> listarPorTipo(String tipo) throws SessaoJaInativaException, TipoVazioException {
     if (tipo == null || tipo.trim().isEmpty()) {
-      throw new IllegalArgumentException("Tipo não pode ser nulo ou vazio");
+      throw new TipoVazioException();
     }
     verificarSessaoAtiva();
     return repositorioTarefas.listarPorTipo(tipo, sessao.getUsuarioLogado());
   }
   
-  public List<TarefaAbstrata> listarTarefasPorCategoria(Categoria categoria) throws IllegalArgumentException, IllegalStateException {
+  public List<TarefaAbstrata> listarTarefasPorCategoria(Categoria categoria) throws CategoriaVaziaException, SessaoJaInativaException {
     if (categoria == null) {
-      throw new IllegalArgumentException("Categoria não pode ser nula");
+      throw new CategoriaVaziaException();
     }
     verificarSessaoAtiva();
     return repositorioTarefas.listarPorCategoria(categoria, sessao.getUsuarioLogado());
@@ -143,20 +148,26 @@ public class NegocioTarefa {
 
   // MÉTODOS ESPECÍFICOS PARA DELEGAÇÃO
   
-  public void delegarTarefa(String id, Usuario novoResponsavel) throws IllegalArgumentException, IllegalStateException {
+  public void delegarTarefa(String id, Usuario novoResponsavel) throws DelegacaoStatusInvalidoException, DelegacaoMotivoException, DelegacaoRegistroInvalidoException, DelegacaoResponsavelInvalidoException, DelegacaoResponsavelVazioException,
+          TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException,
+          TarefaIDNaoPertenceException, DelegacaoInvalidaException, CriadorVazioException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     validarResponsavel(novoResponsavel);
 
     if (!(tarefa instanceof Delegavel)) {
-      throw new IllegalStateException("Tarefa não pode ser delegada");
+      throw new DelegacaoInvalidaException();
     }
     
     Delegavel tarefaDelegavel = (Delegavel) tarefa;
     tarefaDelegavel.delegarPara(novoResponsavel);
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new TarefaVaziaException();
+    }
   }
   
-  public List<TarefaAbstrata> listarTarefasDelegadas() throws IllegalStateException {
+  public List<TarefaAbstrata> listarTarefasDelegadas() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     Usuario usuarioLogado = sessao.getUsuarioLogado();
     List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTarefasPorUsuario(usuarioLogado);
@@ -173,7 +184,7 @@ public class NegocioTarefa {
     return delegadas;
   }
   
-  public List<TarefaAbstrata> listarTarefasDelegadasParaUsuario() throws IllegalStateException {
+  public List<TarefaAbstrata> listarTarefasDelegadasParaUsuario() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     Usuario usuarioLogado = sessao.getUsuarioLogado();
     List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTodas();
@@ -190,7 +201,7 @@ public class NegocioTarefa {
     return delegadasParaMim;
   }
   
-  public List<TarefaAbstrata> listarTarefasDoUsuario() throws IllegalStateException {
+  public List<TarefaAbstrata> listarTarefasDoUsuario() throws SessaoJaInativaException {
     verificarSessaoAtiva();
     Usuario usuarioLogado = sessao.getUsuarioLogado();
     List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTodas();
@@ -209,31 +220,44 @@ public class NegocioTarefa {
 
 
 
+
   // MÉTODOS DE CONTROLE DE STATUS
   
-  public void iniciarTarefa(String id) throws IllegalArgumentException, IllegalStateException {
+  public void iniciarTarefa(String id) throws IniciacaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.iniciar();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new TarefaVaziaException();
+    }
   }
 
-  public void cancelarTarefa(String id) throws IllegalArgumentException, IllegalStateException {
+  public void cancelarTarefa(String id) throws CancelamentoInvalidoException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.cancelar();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new TarefaVaziaException();
+    }
   }
   
-  public void concluirTarefa(String id) throws IllegalArgumentException, IllegalStateException {
+  public void concluirTarefa(String id) throws ConclusaoInvalidaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, RecorrenteExecucaoException, AtualizarTarefaException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     tarefa.concluir();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new TarefaVaziaException();
+    }
   }
 
   // MÉTODOS DE MODIFICAÇÃO DE TAREFAS
   
   public void atualizarTarefa(String id, String novoTitulo, String novaDescricao, 
-                               Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria) 
-      throws IllegalArgumentException, IllegalStateException {
+                               Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria)
+          throws TituloVazioException, DescricaoVaziaException, AtualizarTarefaException, PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException, TarefaVaziaException {
     TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
 
     if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {
@@ -256,34 +280,38 @@ public class NegocioTarefa {
         tarefa.setCategoria(novaCategoria);
     }
 
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new TarefaVaziaException();
+    }
   }
   
-  public void removerTarefa(String id) throws IllegalArgumentException, IllegalStateException {
+  public void removerTarefa(String id) throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
     validarTarefaDoUsuario(id);
     repositorioTarefas.removerTarefa(id);
   }
   
   // MÉTODOS DE VALIDAÇÃO E AUXILIARES
   
-  public TarefaAbstrata buscarTarefaPorId(String id) throws IllegalArgumentException, IllegalStateException {
+  public TarefaAbstrata buscarTarefaPorId(String id) throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, TarefaIDNaoPertenceException {
     return validarTarefaDoUsuario(id);
   }
   
-  private TarefaAbstrata validarTarefaDoUsuario(String id) throws IllegalArgumentException, IllegalStateException {
+  private TarefaAbstrata validarTarefaDoUsuario(String id) throws TarefaIDVazioException, TarefaIDNaoEncontradaException, SessaoJaInativaException, TarefaIDNaoPertenceException {
     if (id == null || id.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID da tarefa não pode ser nulo ou vazio");
+      throw new TarefaIDVazioException();
     }
     
     verificarSessaoAtiva();
     
     TarefaAbstrata tarefa = repositorioTarefas.buscarTarefaPorID(id);
     if (tarefa == null) {
-      throw new IllegalArgumentException("Tarefa com ID '" + id + "' não encontrada");
+      throw new TarefaIDNaoEncontradaException(id);
     }
 
     if (!tarefa.getCriador().equals(sessao.getUsuarioLogado())) {
-      throw new IllegalStateException("Tarefa não pertence ao usuário logado");
+      throw new TarefaIDNaoPertenceException(id);
     }
 
     return tarefa;
@@ -291,9 +319,9 @@ public class NegocioTarefa {
 
   // MÉTODOS DE CONVENIÊNCIA
 
-  public boolean podeRemoverCategoria(Categoria categoria) throws IllegalArgumentException, IllegalStateException {
+  public boolean podeRemoverCategoria(Categoria categoria) throws CategoriaVaziaException, SessaoJaInativaException {
     if (categoria == null) {
-      throw new IllegalArgumentException("Categoria não pode ser nula");
+      throw new CategoriaVaziaException();
     }
     verificarSessaoAtiva();
     List<TarefaAbstrata> tarefasComCategoria = repositorioTarefas.listarPorCategoria(categoria, sessao.getUsuarioLogado());
@@ -302,47 +330,39 @@ public class NegocioTarefa {
 
   // MÉTODOS PRIVADOS DE VALIDAÇÃO
   
-  private void validarParametrosCriacao(String titulo, Prioridade prioridade) throws IllegalArgumentException {
+  private void validarParametrosCriacao(String titulo, Prioridade prioridade) throws TituloVazioException, PrioridadeVaziaException {
     if (titulo == null || titulo.trim().isEmpty()) {
-      throw new IllegalArgumentException("Título não pode ser nulo ou vazio");
+      throw new TituloVazioException();
     }
     if (prioridade == null) {
-      throw new IllegalArgumentException("Prioridade não pode ser nula");
+      throw new PrioridadeVaziaException();
     }
   }
 
-  private void validarResponsavel(Usuario responsavel) throws IllegalArgumentException {
+  private void validarResponsavel(Usuario responsavel) throws DelegacaoResponsavelVazioException {
     if (responsavel == null) {
-      throw new IllegalArgumentException("Responsável não pode ser nulo");
+      throw new DelegacaoResponsavelVazioException();
     }
   }
 
-  private void validarPeriodicidade(java.time.Period periodicidade) throws IllegalArgumentException {
+  private void validarPeriodicidade(java.time.Period periodicidade) throws RecorrentePeriodicidadeException {
     if (periodicidade == null) {
-      throw new IllegalArgumentException("Periodicidade não pode ser nula");
+      throw new RecorrentePeriodicidadeException();
     }
   }
 
-  private void validarParametrosTemporizacao(LocalDateTime prazoFinal, java.time.Duration estimativa) throws IllegalArgumentException {
-    if (prazoFinal == null) {
-      throw new IllegalArgumentException("Prazo final não pode ser nulo");
-    }
-    if (estimativa == null || estimativa.isNegative() || estimativa.isZero()) {
-      throw new IllegalArgumentException("Estimativa deve ser positiva");
-    }
-  }
-
-  private void verificarSessaoAtiva() throws IllegalStateException {
+  private void verificarSessaoAtiva() throws SessaoJaInativaException {
     if (!sessao.estaLogado()) {
-      throw new IllegalStateException("Usuário deve estar logado");
+      throw new SessaoJaInativaException();
     }
   }
   
   // CONTROLE DE SESSÕES POMODORO
   
   public List<TarefaTemporizada> listarTarefasTemporizadas() throws IllegalStateException {
-    verificarSessaoAtiva();
-    List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTarefasPorUsuario(sessao.getUsuarioLogado());
+    try {
+        verificarSessaoAtiva();
+        List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTarefasPorUsuario(sessao.getUsuarioLogado());
     List<TarefaTemporizada> tarefasTemporizadas = new ArrayList<>();
     
     for (TarefaAbstrata tarefa : todasTarefas) {
@@ -356,39 +376,62 @@ public class NegocioTarefa {
     }
     
     return tarefasTemporizadas;
+    } catch (SessaoJaInativaException e) {
+        throw new IllegalStateException(e.getMessage());
+    }
   }
   
   public void iniciarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.iniciarSessao();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new IllegalStateException(e.getMessage());
+    }
   }
   
   public void pausarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.pausarSessao();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new IllegalStateException(e.getMessage());
+    }
   }
   
   public void retomarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.retomarSessao();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new IllegalStateException(e.getMessage());
+    }
   }
   
   public void concluirSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.concluirSessao();
-    repositorioTarefas.atualizarTarefa(tarefa);
+    try {
+        repositorioTarefas.atualizarTarefa(tarefa);
+    } catch (TarefaVaziaException e) {
+        throw new IllegalStateException(e.getMessage());
+    }
   }
   
   private TarefaTemporizada validarTarefaTemporizada(String id) throws IllegalArgumentException, IllegalStateException {
-    TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
+    try {
+        TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     
     if (!(tarefa instanceof TarefaTemporizada)) {
       throw new IllegalArgumentException("Tarefa não é do tipo Temporizada");
     }
     
     return (TarefaTemporizada) tarefa;
+    } catch (Exception e) {
+        throw new IllegalArgumentException(e.getMessage());
+    }
   }
 }

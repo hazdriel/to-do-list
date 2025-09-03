@@ -2,6 +2,7 @@ package negocio;
 
 import dados.RepositorioUsuarios;
 import negocio.entidade.Usuario;
+import negocio.excecao.usuario.*;
 
 /**
  * Classe responsável pela lógica de negócio relacionada aos usuários.
@@ -10,20 +11,20 @@ import negocio.entidade.Usuario;
 public class NegocioUsuario {
   private final RepositorioUsuarios repositorio;
 
-  public NegocioUsuario(RepositorioUsuarios repositorio) throws IllegalArgumentException {
+  public NegocioUsuario(RepositorioUsuarios repositorio) throws RepositorioUsuariosVazioException {
     if (repositorio == null) {
-      throw new IllegalArgumentException("Repositório não pode ser nulo");
+      throw new RepositorioUsuariosVazioException();
     }
     
     this.repositorio = repositorio;
   }
 
-  public Usuario validarCredenciais(String email, String senha) throws IllegalArgumentException {
+  public Usuario validarCredenciais(String email, String senha) throws EmailVazioException, SenhaVaziaException  {
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email não pode ser nulo ou vazio");
+      throw new EmailVazioException();
     }
     if (senha == null || senha.trim().isEmpty()) {
-      throw new IllegalArgumentException("Senha não pode ser nula ou vazia");
+      throw new SenhaVaziaException();
     }
 
     Usuario usuario = repositorio.buscarUsuario(email.trim());
@@ -43,37 +44,41 @@ public class NegocioUsuario {
     return repositorio.existeUsuario(email);
   }
 
-  public void cadastrarUsuario(String nome, String email, String senha) throws IllegalArgumentException {
+  public void cadastrarUsuario(String nome, String email, String senha) throws NomeVazioException, EmailVazioException, SenhaVaziaException, UsuarioExistenteException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, EmailFormatoInvalidoException, UsuarioVazioException {
     if (nome == null || nome.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome não pode ser nulo ou vazio");
+      throw new NomeVazioException();
     }
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email não pode ser nulo ou vazio");
+      throw new EmailVazioException();
     }
     if (senha == null || senha.trim().isEmpty()) {
-      throw new IllegalArgumentException("Senha não pode ser nula ou vazia");
+      throw new SenhaVaziaException();
     }
 
     if (usuarioExiste(email.trim())) {
-      throw new IllegalArgumentException("Usuário já existe com este email");
+      throw new UsuarioExistenteException(email);
     }
 
     Usuario novoUsuario = new Usuario(nome.trim(), email.trim(), senha);
-    repositorio.inserirUsuario(novoUsuario);
+    try {
+        repositorio.inserirUsuario(novoUsuario);
+    } catch (UsuarioVazioException e) {
+        throw new UsuarioVazioException();
+    }
   }
 
 
-  public Usuario buscarUsuarioPorId(String id) throws IllegalArgumentException {
+  public Usuario buscarUsuarioPorId(String id) throws IDUsuarioVazio {
     if (id == null || id.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID não pode ser nulo ou vazio");
+      throw new IDUsuarioVazio();
     }
     
     return repositorio.buscarPorId(id.trim()).orElse(null);
   }
 
-  public Usuario buscarUsuarioPorEmail(String email) throws IllegalArgumentException {
+  public Usuario buscarUsuarioPorEmail(String email) throws EmailVazioException {
     if (email == null || email.trim().isEmpty()) {
-      throw new IllegalArgumentException("Email não pode ser nulo ou vazio");
+      throw new EmailVazioException();
     }
     
     return repositorio.buscarUsuario(email.trim());
@@ -83,37 +88,37 @@ public class NegocioUsuario {
     return repositorio.listarTodos();
   }
 
-  public void alterarSenha(Usuario usuario, String senhaAtual, String novaSenha) 
-      throws IllegalArgumentException {
+  public void alterarSenha(Usuario usuario, String senhaAtual, String novaSenha)
+          throws IllegalArgumentException, UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException, SenhaTamanhoInvalidoException {
     if (usuario == null) {
-      throw new IllegalArgumentException("Usuário não pode ser nulo");
+      throw new UsuarioVazioException();
     }
     if (senhaAtual == null || senhaAtual.trim().isEmpty()) {
-      throw new IllegalArgumentException("Senha atual não pode ser nula ou vazia");
+      throw new SenhaVaziaException();
     }
     if (novaSenha == null || novaSenha.trim().isEmpty()) {
-      throw new IllegalArgumentException("Nova senha não pode ser nula ou vazia");
+      throw new SenhaVaziaException();
     }
     
     if (!usuario.getSenha().equals(senhaAtual)) {
-      throw new IllegalArgumentException("Senha atual incorreta");
+      throw new SenhaIncorretaException(usuario.getEmail());
     }
 
     usuario.setSenha(novaSenha);
     repositorio.atualizarUsuario(usuario);
   }
 
-  public void excluirConta(Usuario usuario, String senhaConfirmacao) 
-      throws IllegalArgumentException {
+  public void excluirConta(Usuario usuario, String senhaConfirmacao)
+          throws IllegalArgumentException, UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException {
     if (usuario == null) {
-      throw new IllegalArgumentException("Usuário não pode ser nulo");
+      throw new UsuarioVazioException();
     }
     if (senhaConfirmacao == null || senhaConfirmacao.trim().isEmpty()) {
-      throw new IllegalArgumentException("Senha de confirmação é obrigatória");
+      throw new SenhaVaziaException();
     }
     
     if (!usuario.getSenha().equals(senhaConfirmacao)) {
-      throw new IllegalArgumentException("Senha de confirmação incorreta");
+      throw new SenhaIncorretaException(usuario.getEmail());
     }
 
     repositorio.removerUsuario(usuario.getEmail());

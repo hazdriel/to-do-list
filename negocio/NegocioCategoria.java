@@ -3,6 +3,12 @@ package negocio;
 import dados.RepositorioCategorias;
 import negocio.entidade.Categoria;
 import negocio.entidade.Usuario;
+import negocio.excecao.categoria.*;
+import negocio.excecao.sessao.NegocioTarefaVazioException;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.sessao.SessaoNulaException;
+import negocio.excecao.tarefa.CriadorVazioException;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -11,26 +17,26 @@ public class NegocioCategoria {
     private NegocioSessao sessao;
     private NegocioTarefa negocioTarefa;
     
-    public NegocioCategoria(RepositorioCategorias repositorioCategorias, NegocioSessao sessao) {
+    public NegocioCategoria(RepositorioCategorias repositorioCategorias, NegocioSessao sessao) throws RepositorioCategoriaVazioException, SessaoNulaException {
         if (repositorioCategorias == null) {
-            throw new IllegalArgumentException("Repositório de categorias não pode ser nulo");
+            throw new RepositorioCategoriaVazioException();
         }
         if (sessao == null) {
-            throw new IllegalArgumentException("Sessão não pode ser nula");
+            throw new SessaoNulaException();
         }
         this.repositorioCategorias = repositorioCategorias;
         this.sessao = sessao;
     }
     
-    public NegocioCategoria(RepositorioCategorias repositorioCategorias, NegocioSessao sessao, NegocioTarefa negocioTarefa) {
+    public NegocioCategoria(RepositorioCategorias repositorioCategorias, NegocioSessao sessao, NegocioTarefa negocioTarefa) throws RepositorioCategoriaVazioException, SessaoNulaException, NegocioTarefaVazioException {
         if (repositorioCategorias == null) {
-            throw new IllegalArgumentException("Repositório de categorias não pode ser nulo");
+            throw new RepositorioCategoriaVazioException();
         }
         if (sessao == null) {
-            throw new IllegalArgumentException("Sessão não pode ser nula");
+            throw new SessaoNulaException();
         }
         if (negocioTarefa == null) {
-            throw new IllegalArgumentException("Negócio de tarefa não pode ser nulo");
+            throw new NegocioTarefaVazioException();
         }
         this.repositorioCategorias = repositorioCategorias;
         this.sessao = sessao;
@@ -39,10 +45,10 @@ public class NegocioCategoria {
     
     // MÉTODOS DE LISTAGEM
 
-    public List<Categoria> listarCategoriasDoUsuario() throws IllegalStateException {
+    public List<Categoria> listarCategoriasDoUsuario() throws SessaoJaInativaException {
         Usuario usuario = sessao.getUsuarioLogado();
         if (usuario == null) {
-            throw new IllegalStateException("Usuário não está logado");
+            throw new SessaoJaInativaException();
         }
         
         List<Categoria> todasCategorias = repositorioCategorias.listarCategorias();
@@ -61,14 +67,14 @@ public class NegocioCategoria {
 
     // MÉTODOS DE CRIAÇÃO
 
-    public Categoria criarCategoria(String nome) throws IllegalArgumentException, IllegalStateException {
+    public Categoria criarCategoria(String nome) throws CategoriaVaziaException, SessaoJaInativaException, CriadorVazioException {
         if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+            throw new CategoriaVaziaException();
         }
         
         Usuario usuario = sessao.getUsuarioLogado();
         if (usuario == null) {
-            throw new IllegalStateException("Usuário não está logado");
+            throw new SessaoJaInativaException();
         }
         
         Categoria novaCategoria = new Categoria(nome, usuario);
@@ -78,53 +84,54 @@ public class NegocioCategoria {
     
     // MÉTODOS DE REMOÇÃO
 
-    public boolean removerCategoria(String nomeCategoria, boolean temTarefasAssociadas) throws IllegalArgumentException, IllegalStateException {
+    public boolean removerCategoria(String nomeCategoria, boolean temTarefasAssociadas) throws CategoriaVaziaException, SessaoJaInativaException,
+            CategoriaNaoEncontrada, CategoriaAtivaRemocaoException, CategoriaNaoPertenceException, RepositorioCategoriaRemocaoException {
         if (nomeCategoria == null || nomeCategoria.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+            throw new CategoriaVaziaException();
         }
         
         Usuario usuario = sessao.getUsuarioLogado();
         if (usuario == null) {
-            throw new IllegalStateException("Usuário não está logado");
+            throw new SessaoJaInativaException();
         }
         
         // Verificar se é categoria padrão
         if (isCategoriaPadrao(nomeCategoria)) {
-            throw new IllegalStateException("Não é possível remover a categoria padrão '" + nomeCategoria + "'");
+            throw new CategoriaAtivaRemocaoException(nomeCategoria);
         }
         
         // Verificar se há tarefas associadas
         if (temTarefasAssociadas) {
-            throw new IllegalStateException("Não é possível remover a categoria '" + nomeCategoria + "' pois existem tarefas associadas a ela");
+            throw new CategoriaAtivaRemocaoException(nomeCategoria);
         }
         
         // Verificar se o usuário tem permissão
         Categoria categoria = repositorioCategorias.buscarCategoria(nomeCategoria);
         if (categoria == null) {
-            throw new IllegalArgumentException("Categoria não encontrada: '" + nomeCategoria + "'");
+            throw new CategoriaNaoEncontrada(nomeCategoria);
         }
         
         if (!categoria.foiCriadaPor(usuario)) {
-            throw new IllegalStateException("Você não tem permissão para remover esta categoria");
+            throw new CategoriaNaoPertenceException(nomeCategoria);
         }
         
         // Remover categoria
         if (repositorioCategorias.removerCategoria(nomeCategoria)) {
             return true;
         } else {
-            throw new IllegalStateException("Erro ao remover categoria do repositório");
+            throw new RepositorioCategoriaRemocaoException();
         }
     }
     
-    public boolean removerCategoria(String nomeCategoria) throws IllegalArgumentException, IllegalStateException {
+    public boolean removerCategoria(String nomeCategoria) throws CategoriaVaziaException, CategoriaNaoEncontrada, SessaoJaInativaException, CategoriaNaoPertenceException, CategoriaAtivaRemocaoException, RepositorioCategoriaRemocaoException {
         if (nomeCategoria == null || nomeCategoria.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+            throw new CategoriaVaziaException();
         }
         
         Categoria categoria = repositorioCategorias.buscarCategoria(nomeCategoria);
         
         if (categoria == null) {
-            throw new IllegalArgumentException("Categoria não encontrada: '" + nomeCategoria + "'");
+            throw new CategoriaNaoEncontrada(nomeCategoria);
         }
         
         boolean temTarefasAssociadas = false;
@@ -137,16 +144,16 @@ public class NegocioCategoria {
     
     // MÉTODOS AUXILIARES
 
-    public boolean isCategoriaPadrao(String nomeCategoria) throws IllegalArgumentException {
+    public boolean isCategoriaPadrao(String nomeCategoria) throws CategoriaVaziaException {
         if (nomeCategoria == null || nomeCategoria.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome da categoria não pode ser nulo ou vazio");
+            throw new CategoriaVaziaException();
         }
         
         Categoria categoria = repositorioCategorias.buscarCategoria(nomeCategoria);
         return categoria != null && categoria.isPadrao();
     }
     
-    public void garantirCategoriasPadrao() {
+    public void garantirCategoriasPadrao() throws CategoriaVaziaException {
         String[] categoriasPadrao = {"Trabalho", "Estudo", "Pessoal"};
         
         for (String nomeCategoria : categoriasPadrao) {

@@ -1,5 +1,7 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,26 +22,22 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
     private int totalSessoes;              // Ex: 4 sessões
     private int sessoesCompletadas;        // Contador atual
     
-    // Estado da sessão atual
     private LocalDateTime inicioSessao;
     private boolean sessaoAtiva;
     private boolean emPausa;
     private LocalDateTime inicioPausa;
     
-    // Histórico
     private List<SessaoPomodoro> historicoSessoes;
     
-    // Validações
     private static final Duration MAX_DURACAO_SESSAO = Duration.ofHours(2);
     private static final Duration MIN_DURACAO_SESSAO = Duration.ofMinutes(5);
 
     public TarefaTemporizada(String titulo, String descricao, LocalDateTime prazo, 
                             Prioridade prioridade, Categoria categoria, Usuario criador,
                             Duration duracaoSessao, Duration duracaoPausa, int totalSessoes) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, TituloVazioException, CriadorVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
-        // Validações
         if (duracaoSessao == null || duracaoSessao.isNegative() || 
             duracaoSessao.compareTo(MAX_DURACAO_SESSAO) > 0 ||
             duracaoSessao.compareTo(MIN_DURACAO_SESSAO) < 0) {
@@ -70,7 +68,7 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
 
     @Override
     public boolean podeSerDelegada() {
-        return false; // Tarefas temporizadas não podem ser delegadas
+        return false; 
     }
 
     @Override
@@ -105,7 +103,6 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         }
         
         emPausa = false;
-        // Ajusta o tempo de início para compensar a pausa
         Duration tempoPausado = Duration.between(inicioPausa, LocalDateTime.now());
         inicioSessao = inicioSessao.plus(tempoPausado);
     }
@@ -116,7 +113,6 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
             throw new IllegalStateException("Nenhuma sessão ativa para concluir");
         }
         
-        // Registra a sessão no histórico
         SessaoPomodoro sessao = new SessaoPomodoro();
         sessao.setInicio(inicioSessao);
         sessao.setFim(LocalDateTime.now());
@@ -127,7 +123,6 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         historicoSessoes.add(sessao);
         sessoesCompletadas++;
         
-        // Reseta estado
         sessaoAtiva = false;
         emPausa = false;
         inicioSessao = null;
@@ -152,7 +147,6 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         
         LocalDateTime agora = LocalDateTime.now();
         
-        // Se está pausada, o tempo restante não muda
         if (emPausa) {
             LocalDateTime fimSessao = inicioSessao.plus(duracaoSessao);
             return Duration.between(inicioPausa, fimSessao);
@@ -161,7 +155,7 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         LocalDateTime fimSessao = inicioSessao.plus(duracaoSessao);
         
         if (agora.isAfter(fimSessao)) {
-            return Duration.ZERO; // Sessão expirou
+            return Duration.ZERO;
         }
         
         return Duration.between(agora, fimSessao);
@@ -176,7 +170,6 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         LocalDateTime referencia = emPausa ? inicioPausa : LocalDateTime.now();
         LocalDateTime fimSessao = inicioSessao.plus(duracaoSessao);
         
-        // Se passou do tempo, progresso é 100%
         if (referencia.isAfter(fimSessao)) {
             return 100.0;
         }
@@ -208,12 +201,16 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
 
     @Override
     public LocalDateTime getPrazoFinal() {
-        return getPrazo(); // Usar o prazo da tarefa base
+        return getPrazo(); 
     }
 
     @Override
-    public void setPrazoFinal(LocalDateTime prazoFinal) {
-        setPrazo(prazoFinal); // Usar o setter da tarefa base
+    public void setPrazoFinal(LocalDateTime prazoFinal) throws AtualizarTarefaException {
+        try {
+            setPrazo(prazoFinal);
+        } catch (Exception e) {
+            throw new AtualizarTarefaException(getTitulo());
+        }
     }
 
     @Override
@@ -280,4 +277,5 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
         long minutos = duracao.toMinutes();
         return String.format("%dmin", minutos);
     }
+
 }

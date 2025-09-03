@@ -5,10 +5,7 @@ import negocio.entidade.Usuario;
 import java.util.Scanner;
 
 
-/**
- * Interface especializada para gerenciamento de perfil do usuário.
- * Responsável por exibir informações do perfil, alterar senha e excluir conta.
- */
+// Interface para gerenciamento de perfil do usuário
 public class InterfacePerfil {
     
     private final Scanner scanner;
@@ -23,19 +20,18 @@ public class InterfacePerfil {
         boolean voltarMenu = false;
         
         while (!voltarMenu) {
-            Usuario usuario = gerenciador.getUsuarioLogado();
-            
-            exibirCabecalhoPerfil(usuario);
+            try {
+                Usuario usuario = gerenciador.getUsuarioLogado();
+                exibirCabecalhoPerfil(usuario);
             exibirOpcoesPerfil();
             
             int opcao = UtilitariosInterface.lerInteiro(scanner);
-            scanner.nextLine();
             
             switch (opcao) {
                 case 1 -> alterarSenhaUsuario();
                 case 2 -> {
                     if (excluirContaUsuario()) {
-                        voltarMenu = true; // Sai do loop se a conta foi excluída
+                        voltarMenu = true; 
                     }
                 }
                 case 0 -> voltarMenu = true;
@@ -43,6 +39,10 @@ public class InterfacePerfil {
                     System.out.println("⚠️ Opção inválida. Tente novamente.");
                     UtilitariosInterface.pressioneEnterParaContinuar(scanner);
                 }
+            }
+            } catch (Exception e) {
+                System.out.println("\n❌ Erro ao acessar perfil: " + e.getMessage());
+                voltarMenu = true;
             }
         }
     }
@@ -122,7 +122,7 @@ public class InterfacePerfil {
             System.out.println("✅ Conta excluída com sucesso!");
             System.out.println("👋 Você será redirecionado para a tela de login.");
             UtilitariosInterface.pressioneEnterParaContinuar(scanner);
-            return true; // Indica que a conta foi excluída
+            return true; 
         } catch (Exception e) {
             System.out.println("❌ Erro ao excluir conta: " + e.getMessage());
             UtilitariosInterface.pressioneEnterParaContinuar(scanner);

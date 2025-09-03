@@ -10,12 +10,10 @@ public class PersistenciaArquivo<T> {
     private final String nomeArquivo;
     private final String caminhoCompleto;
     
-    // Construtor que define o nome do arquivo
     public PersistenciaArquivo(String nomeArquivo) {
         this.nomeArquivo = nomeArquivo;
         this.caminhoCompleto = "dados_sistema/" + nomeArquivo + ".dat";
         
-        // Criar diretório se não existir
         File diretorio = new File("dados_sistema");
         if (!diretorio.exists()) {
             diretorio.mkdirs();

@@ -5,17 +5,14 @@ import iu.relatorio.FormatadorRelatorio;
 import negocio.DadosEstatisticos;
 import negocio.DadosEstatisticos.TarefasAtencao;
 import negocio.relatorio.ExportadorPDF;
+import negocio.excecao.sessao.*;
+import negocio.excecao.usuario.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Scanner;
 
-
-/**
- * Módulo da interface de utilizador responsável por gerar e exibir relatórios.
- * Atua como um controlador que solicita os dados ao Gerenciador e delega a
- * formatação para a classe FormatadorRelatorio.
- */
+// Interface para geração e visualização de relatórios
 public final class InterfaceRelatorios {
     
     private final Scanner scanner;
@@ -23,22 +20,13 @@ public final class InterfaceRelatorios {
     private final FormatadorRelatorio formatador;
     private ExportadorPDF exportadorPDF;
     
-    /**
-     * Construtor que recebe as dependências necessárias.
-     * @param scanner A instância compartilhada do Scanner para entrada do utilizador.
-     * @param gerenciador A fachada do sistema para acesso aos dados.
-     */
     public InterfaceRelatorios(Scanner scanner, Gerenciador gerenciador) {
         this.scanner = scanner;
         this.gerenciador = gerenciador;
-        this.formatador = new FormatadorRelatorio(); // O formatador é específico deste módulo.
+        this.formatador = new FormatadorRelatorio();
         this.exportadorPDF = new ExportadorPDF();
     }
     
-    /**
-     * Exibe o menu de relatórios em um loop, permitindo que o utilizador
-     * visualize vários relatórios até decidir voltar.
-     */
     public void exibirMenuRelatorios() {
         boolean executando = true;
         while (executando) {
@@ -71,9 +59,6 @@ public final class InterfaceRelatorios {
         }
     }
     
-    /**
-     * Gera e exibe o relatório de produtividade dos últimos 30 dias.
-     */
     private void exibirRelatorioProdutividade() {
         
         System.out.println("--- RELATÓRIO DE PRODUTIVIDADE ---");
@@ -81,15 +66,19 @@ public final class InterfaceRelatorios {
         LocalDateTime dataFim = LocalDateTime.now();
         LocalDateTime dataInicio = dataFim.minusDays(30);
         
-        DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
-        
-        String relatorio = formatador.formatarRelatorioProdutividade(dados, gerenciador.getUsuarioLogado());
-        System.out.println(relatorio);
+        try {
+            DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
+            String relatorio = formatador.formatarRelatorioProdutividade(dados, gerenciador.getUsuarioLogado());
+            System.out.println(relatorio);
+        } catch (SessaoJaInativaException e) {
+            System.out.println("❌ Você precisa estar logado para gerar relatórios.");
+        } catch (UsuarioVazioException e) {
+            System.out.println("❌ Erro interno do sistema. Tente novamente.");
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao gerar relatório: " + e.getMessage());
+        }
     }
     
-    /**
-     * Gera e exibe um relatório sobre o status geral das tarefas.
-     */
     private void exibirRelatorioStatus() {
         
         System.out.println("--- RELATÓRIO DE STATUS ---");
@@ -97,43 +86,50 @@ public final class InterfaceRelatorios {
         LocalDateTime dataFim = LocalDateTime.now();
         LocalDateTime dataInicio = dataFim.minusDays(30); // O período pode ser ajustado conforme a regra de negócio.
         
-        DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
-        TarefasAtencao tarefasAtencao = gerenciador.obterTarefasQueNecessitamAtencao();
-        
-        String relatorio = formatador.formatarRelatorioStatus(dados, tarefasAtencao, gerenciador.getUsuarioLogado());
-        System.out.println(relatorio);
+        try {
+            DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
+            TarefasAtencao tarefasAtencao = gerenciador.obterTarefasQueNecessitamAtencao();
+            String relatorio = formatador.formatarRelatorioStatus(dados, tarefasAtencao, gerenciador.getUsuarioLogado());
+            System.out.println(relatorio);
+        } catch (SessaoJaInativaException e) {
+            System.out.println("❌ Você precisa estar logado para gerar relatórios.");
+        } catch (UsuarioVazioException e) {
+            System.out.println("❌ Erro interno do sistema. Tente novamente.");
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao gerar relatório: " + e.getMessage());
+        }
     }
     
-    /**
-     * Gera e exibe um relatório de produtividade para um período de dias personalizado.
-     */
     private void exibirRelatorioTemporal() {
         
         System.out.println("--- RELATÓRIO DE PRODUTIVIDADE POR PERÍODO ---");
         
-        int dias = lerPeriodoDeDias(); // Lógica de leitura extraída para um método auxiliar.
+        int dias = lerPeriodoDeDias();
         
         LocalDateTime dataFim = LocalDateTime.now();
         LocalDateTime dataInicio = dataFim.minusDays(dias);
         
-        DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
-        Map<LocalDateTime, Long> produtividadeDiaria = gerenciador.obterProdutividadeTemporal(dataInicio, dataFim);
-        
-        String relatorio = formatador.formatarRelatorioTemporal(
-                produtividadeDiaria, dados, gerenciador.getUsuarioLogado(), dataInicio, dias);
-        System.out.println(relatorio);
+        try {
+            DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
+            Map<LocalDateTime, Long> produtividadeDiaria = gerenciador.obterProdutividadeTemporal(dataInicio, dataFim);
+            
+            String relatorio = formatador.formatarRelatorioTemporal(
+                    produtividadeDiaria, dados, gerenciador.getUsuarioLogado(), dataInicio, dias);
+            System.out.println(relatorio);
+        } catch (SessaoJaInativaException e) {
+            System.out.println("❌ Você precisa estar logado para gerar relatórios.");
+        } catch (UsuarioVazioException e) {
+            System.out.println("❌ Erro interno do sistema. Tente novamente.");
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao gerar relatório temporal: " + e.getMessage());
+        }
     }
-
-    /**
-     * Método auxiliar para ler e validar o número de dias para o relatório temporal.
-     * @return O número de dias, validado entre 1 e 365.
-     */
     private int lerPeriodoDeDias() {
-        System.out.print("Quantos dias para trás deseja analisar? (1-365, padrão: 7): ");
+        System.out.print("A partir de quantos dias deseja analisar? (1-365, padrão: 7): ");
         String entrada = scanner.nextLine();
         
         if (entrada.trim().isEmpty()) {
-            return 7; // Retorna o valor padrão se a entrada for vazia.
+            return 7;
         }
         
         try {
@@ -141,29 +137,29 @@ public final class InterfaceRelatorios {
             if (dias > 0 && dias <= 365) {
                 return dias;
             } else {
-                System.out.println("⚠️ Período inválido. A usar o padrão de 7 dias.");
+                System.out.println("⚠️ Período inválido. Usando o padrão de 7 dias.");
                 return 7;
             }
         } catch (NumberFormatException e) {
-            System.out.println("⚠️ Número inválido. A usar o padrão de 7 dias.");
+            System.out.println("⚠️ Número inválido. Usando o padrão de 7 dias.");
             return 7;
         }
     }
 
-    /**
-     * Exibe um resumo rápido das estatísticas de tarefas.
-     * Este método é chamado por outras partes da UI, como o perfil do utilizador.
-     */
     public void exibirEstatisticasResumidas() {
-        long total = gerenciador.listarTarefas().size();
-        long concluidas = gerenciador.listarConcluidas().size();
-        long pendentes = gerenciador.listarPendentes().size();
-        long atrasadas = gerenciador.listarAtrasadas().size();
+        try {
+            long total = gerenciador.listarTarefas().size();
+            long concluidas = gerenciador.listarConcluidas().size();
+            long pendentes = gerenciador.listarPendentes().size();
+            long atrasadas = gerenciador.listarAtrasadas().size();
 
-        System.out.printf("  - Total de tarefas:   %d\n", total);
-        System.out.printf("  - Tarefas concluídas: %d\n", concluidas);
-        System.out.printf("  - Tarefas pendentes:  %d\n", pendentes);
-        System.out.printf("  - Tarefas atrasadas:  %d\n", atrasadas);
+            System.out.printf("  - Total de tarefas:   %d\n", total);
+            System.out.printf("  - Tarefas concluídas: %d\n", concluidas);
+            System.out.printf("  - Tarefas pendentes:  %d\n", pendentes);
+            System.out.printf("  - Tarefas atrasadas:  %d\n", atrasadas);
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao gerar estatísticas: " + e.getMessage());
+        }
     }
 
     private void exportarRelatorioPDF() {
@@ -175,7 +171,6 @@ public final class InterfaceRelatorios {
         System.out.print("Opção: ");
         
         int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
         
         try {
             String caminhoArquivo = null;

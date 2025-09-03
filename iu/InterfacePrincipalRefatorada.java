@@ -2,21 +2,16 @@ package iu;
 
 import fachada.Gerenciador;
 import negocio.entidade.Usuario;
+import negocio.excecao.sessao.*;
 import java.util.Scanner;
 
-/**
- * Coordenador central da camada de Interface de Utilizador (UI).
- * Esta classe atua como um "maestro", inicializando e orquestrando os diferentes
- * módulos especializados da interface (autenticação, tarefas, etc.),
- * e gerindo o fluxo principal da aplicação.
- */
+// Coordenador central da interface de usuário
 public final class InterfacePrincipalRefatorada {
     
     private final Scanner scanner;
     private final Gerenciador gerenciador;
     private boolean executando;
     
-    // Interfaces especializadas para cada funcionalidade.
     private final InterfaceAutenticacao interfaceAutenticacao;
     private final InterfaceTarefas interfaceTarefas;
     private final InterfaceVisualizacao interfaceVisualizacao;
@@ -29,7 +24,6 @@ public final class InterfacePrincipalRefatorada {
         this.gerenciador = gerenciador;
         this.executando = true;
         
-        // Inicializa todos os módulos da UI, injetando as dependências necessárias.
         this.interfaceAutenticacao = new InterfaceAutenticacao(scanner, gerenciador);
         this.interfaceTarefas = new InterfaceTarefas(scanner, gerenciador);
         this.interfaceVisualizacao = new InterfaceVisualizacao(scanner, gerenciador);
@@ -38,16 +32,13 @@ public final class InterfacePrincipalRefatorada {
         this.interfacePerfil = new InterfacePerfil(scanner, gerenciador);
     }
     
-    /**
-     * Ponto de entrada que inicia e controla o loop principal do sistema.
-     */
     public void executar() {
     
         while (executando) {
             if (!gerenciador.estaLogado()) {
                 boolean continuar = interfaceAutenticacao.exibirTelaLogin();
                 if (!continuar) {
-                    executando = false; // Utilizador escolheu sair do sistema.
+                    executando = false; 
                 }
             } else {
                 exibirMenuPrincipal();
@@ -59,9 +50,6 @@ public final class InterfacePrincipalRefatorada {
         scanner.close();
     }
     
-    /**
-     * Exibe o menu principal e encaminha o utilizador para o módulo escolhido.
-     */
     private void exibirMenuPrincipal() {
         
         exibirCabecalhoDoMenu();
@@ -81,32 +69,31 @@ public final class InterfacePrincipalRefatorada {
         processarOpcaoDoMenuPrincipal(opcao);
     }
 
-    /**
-     * Exibe o cabeçalho padronizado do menu principal, com as informações do utilizador.
-     */
     private void exibirCabecalhoDoMenu() {
         System.out.println("=".repeat(50));
         System.out.println("              🎯 MENU PRINCIPAL 🎯");
         System.out.println("=".repeat(50));
-        Usuario usuarioLogado = gerenciador.getUsuarioLogado();
-        System.out.printf("👤 Utilizador: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
+        try {
+            Usuario usuarioLogado = gerenciador.getUsuarioLogado();
+            System.out.printf("👤 Usuario: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("👤 Usuario: Não logado");
+        } catch (Exception e) {
+            System.out.println("👤 Usuario: Erro ao obter dados");
+        }
         System.out.println("-".repeat(50));
     }
 
-    /**
-     * Processa a opção escolhida pelo utilizador no menu principal.
-     * @param opcao O número da opção escolhida.
-     */
+    
     private void processarOpcaoDoMenuPrincipal(int opcao) {
         switch (opcao) {
             case 1 -> interfaceTarefas.exibirMenuTarefas();
-            case 2 -> interfaceVisualizacao.exibirMenuVisualizacao(); // Nome do método ajustado
+            case 2 -> interfaceVisualizacao.exibirMenuVisualizacao();
             case 3 -> interfaceCategorias.exibirMenuCategorias();
             case 4 -> interfaceRelatorios.exibirMenuRelatorios();
             case 5 -> interfacePerfil.exibirMenuPerfil();
             case 6 -> {
                 interfaceAutenticacao.realizarLogout();
-                // A flag 'executando' continua true, o loop principal irá para a tela de login.
             }
             case 0 -> {
                 System.out.println("\nSaindo do sistema...");

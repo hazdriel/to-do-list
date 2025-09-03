@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import negocio.entidade.Categoria;
+import negocio.excecao.categoria.CategoriaVaziaException;
+
+// Repositório para gerenciar persistência de categorias
 
 public class RepositorioCategorias {
     
@@ -25,9 +28,9 @@ public class RepositorioCategorias {
     
     // MÉTODOS BÁSICOS DE CRUD
     
-    public void inserirCategoria(Categoria categoria) {
+    public void inserirCategoria(Categoria categoria) throws CategoriaVaziaException {
         if (categoria == null) {
-            throw new IllegalArgumentException("Categoria não pode ser nula");
+            throw new CategoriaVaziaException();
         }
         categorias.put(categoria.getNome(), categoria);
         salvarDados();

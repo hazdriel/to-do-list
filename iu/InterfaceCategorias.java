@@ -3,15 +3,15 @@ package iu;
 import fachada.Gerenciador;
 import negocio.entidade.Categoria;
 import negocio.entidade.Usuario;
+import negocio.excecao.sessao.*;
+import negocio.excecao.categoria.*;
+import negocio.excecao.tarefa.*;
 
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-/**
- * Módulo da interface de usuário dedicado ao gerenciamento de categorias.
- * Permite ao utilizador visualizar, criar e remover as suas categorias personalizadas.
- */
+// Interface para gerenciamento de categorias
 public final class InterfaceCategorias {
     
     private final Scanner scanner;
@@ -22,10 +22,7 @@ public final class InterfaceCategorias {
         this.gerenciador = gerenciador;
     }
     
-    /**
-     * Exibe o menu de gerenciamento de categorias e o mantém em um loop
-     * até que o utilizador decida voltar.
-     */
+
     public void exibirMenuCategorias() {
         boolean executando = true;
         while (executando) {
@@ -49,39 +46,38 @@ public final class InterfaceCategorias {
                 }
                 default -> System.out.println("❌ Opção inválida.");
             }
-            // Pausa a tela após cada ação (exceto ao sair)
             if (executando) {
                 UtilitariosInterface.pressioneEnterParaContinuar(scanner);
             }
         }
     }
     
-    /**
-     * Busca e exibe todas as categorias associadas ao utilizador.
-     */
+
     private void exibirCategoriasExistentes() {
         
         System.out.println("--- CATEGORIAS EXISTENTES ---");
         
-        List<Categoria> categorias = gerenciador.listarCategorias();
-        
-        if (categorias == null || categorias.isEmpty()) {
-            System.out.println("\n📭 Nenhuma categoria foi criada ainda.");
-            return;
-        }
-        
-        for (Categoria categoria : categorias) {
-            exibirDetalhesCategoria(categoria);
-            System.out.println("-".repeat(40));
-        }
+        try {
+            List<Categoria> categorias = gerenciador.listarCategorias();
+            
+            if (categorias == null || categorias.isEmpty()) {
+                System.out.println("\n📭 Nenhuma categoria foi criada ainda.");
+                return;
+            }
+            
+            for (Categoria categoria : categorias) {
+                exibirDetalhesCategoria(categoria);
+                System.out.println("-".repeat(40));
+            }
         
         System.out.printf("\nTotal: %d categoria(s) encontradas.\n", categorias.size());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Você precisa estar logado para listar categorias.");
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro inesperado ao listar categorias: " + e.getMessage());
+        }
     }
     
-    /**
-     * Formata e exibe os detalhes de uma única categoria.
-     * @param categoria A categoria a ser exibida.
-     */
     private void exibirDetalhesCategoria(Categoria categoria) {
         System.out.printf("Nome: %s\n", categoria.getNome());
         if (categoria.isPadrao()) {
@@ -92,9 +88,7 @@ public final class InterfaceCategorias {
         }
     }
     
-    /**
-     * Conduz o processo de criação de uma nova categoria personalizada.
-     */
+
     private void criarNovaCategoria() {
         
         System.out.println("--- CRIAR NOVA CATEGORIA ---");
@@ -106,31 +100,31 @@ public final class InterfaceCategorias {
             return;
         }
         
-        // A lógica de verificação de nome duplicado deve idealmente estar na fachada/negócio.
-        // A interface apenas reage ao resultado.
         try {
             Categoria novaCategoria = gerenciador.criarCategoria(nome);
             System.out.println("\n✅ Categoria '" + novaCategoria.getNome() + "' criada com sucesso!");
-        } catch (IllegalArgumentException e) {
-            System.out.println("\n❌ Erro ao criar categoria: " + e.getMessage());
+        } catch (CategoriaVaziaException e) {
+            System.out.println("\n❌ Nome da categoria não pode estar vazio. Tente novamente.");
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Você precisa estar logado para criar categorias.");
+        } catch (CriadorVazioException e) {
+            System.out.println("\n❌ Erro interno do sistema. Tente novamente.");
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro inesperado ao criar categoria: " + e.getMessage());
         }
     }
     
-    /**
-     * Conduz o processo de remoção de uma categoria personalizada.
-     */
     private void removerCategoria() {
         
         System.out.println("--- REMOVER CATEGORIA ---");
-        
-        // Filtra apenas as categorias que o utilizador atual pode remover.
-        Usuario utilizadorAtual = gerenciador.getUsuarioLogado();
-        List<Categoria> categoriasRemoviveis = gerenciador.listarCategorias().stream()
-                .filter(c -> !c.isPadrao() && c.foiCriadaPor(utilizadorAtual))
-                .collect(Collectors.toList());
+        try {
+            Usuario utilizadorAtual = gerenciador.getUsuarioLogado();
+            List<Categoria> categoriasRemoviveis = gerenciador.listarCategorias().stream()
+                    .filter(c -> !c.isPadrao() && c.foiCriadaPor(utilizadorAtual))
+                    .collect(Collectors.toList());
         
         if (categoriasRemoviveis.isEmpty()) {
-            System.out.println("\n📭 Nenhuma categoria criada por si para remover.");
+            System.out.println("\n📭 Nenhuma categoria criada para remover.");
             return;
         }
         
@@ -152,16 +146,22 @@ public final class InterfaceCategorias {
             
             String prompt = String.format("Tem a certeza que deseja remover a categoria '%s'? (s/N): ", categoriaParaRemover.getNome());
             String confirmacao = UtilitariosInterface.lerString(scanner, prompt).toLowerCase();
-            
-            // Lógica de confirmação mais segura: apenas "s" ou "sim" confirmam.
             if (List.of("s", "sim").contains(confirmacao)) {
                 try {
                     gerenciador.removerCategoria(categoriaParaRemover.getNome());
                     System.out.println("\n✅ Categoria removida com sucesso!");
-                } catch (IllegalArgumentException e) {
-                    System.out.println("\n❌ Erro de validação: " + e.getMessage());
-                } catch (IllegalStateException e) {
-                    System.out.println("\n❌ Operação não permitida: " + e.getMessage());
+                } catch (CategoriaVaziaException e) {
+                    System.out.println("\n❌ Nome da categoria não pode estar vazio.");
+                } catch (CategoriaNaoEncontrada e) {
+                    System.out.println("\n❌ Categoria não encontrada.");
+                } catch (CategoriaNaoPertenceException e) {
+                    System.out.println("\n❌ Você não tem permissão para remover esta categoria.");
+                } catch (CategoriaAtivaRemocaoException e) {
+                    System.out.println("\n❌ Não é possível remover categoria que está sendo usada por tarefas.");
+                } catch (SessaoJaInativaException e) {
+                    System.out.println("\n❌ Você precisa estar logado para remover categorias.");
+                } catch (RepositorioCategoriaRemocaoException e) {
+                    System.out.println("\n❌ Erro interno do sistema ao remover categoria.");
                 } catch (Exception e) {
                     System.out.println("\n❌ Erro inesperado ao remover categoria: " + e.getMessage());
                 }
@@ -171,5 +171,11 @@ public final class InterfaceCategorias {
         } else {
             System.out.println("❌ Opção inválida.");
         }
+        } catch (SessaoJaInativaException e) {
+            System.out.println("\n❌ Você precisa estar logado para remover categorias.");
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro inesperado ao remover categoria: " + e.getMessage());
+        }
+        UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
 }

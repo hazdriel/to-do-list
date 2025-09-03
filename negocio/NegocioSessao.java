@@ -1,6 +1,10 @@
 package negocio;
 
 import negocio.entidade.Usuario;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.sessao.NegocioUsuarioVazioException;
+import negocio.excecao.sessao.LoginJaAtivoException;
+import negocio.excecao.usuario.*;
 
 /**
  * Classe responsável por gerenciar a sessão do usuário no sistema.
@@ -13,24 +17,24 @@ public class NegocioSessao {
     private Usuario usuarioLogado;
     private final NegocioUsuario negocioUsuario;
 
-    public NegocioSessao(NegocioUsuario negocioUsuario) throws IllegalArgumentException {
+    public NegocioSessao(NegocioUsuario negocioUsuario) throws NegocioUsuarioVazioException {
         if (negocioUsuario == null) {
-            throw new IllegalArgumentException("NegocioUsuario não pode ser nulo");
+            throw new NegocioUsuarioVazioException();
         }
         this.usuarioLogado = null;
         this.negocioUsuario = negocioUsuario;
     }
     
-    public Usuario getUsuarioLogado() throws IllegalStateException {
+    public Usuario getUsuarioLogado() throws IllegalStateException, SessaoJaInativaException {
         if (!estaLogado()) {
-            throw new IllegalStateException("Nenhum usuário está logado");
+            throw new SessaoJaInativaException();
         }
         return usuarioLogado;
     }
     
-    public boolean autenticar(String email, String senha) throws IllegalArgumentException, IllegalStateException {
+    public boolean autenticar(String email, String senha) throws LoginJaAtivoException, EmailVazioException, SenhaVaziaException, UsuarioVazioException {
         if (estaLogado()) {
-            throw new IllegalStateException("Já existe um usuário logado. Faça logout primeiro.");
+            throw new LoginJaAtivoException();
         }
         
         Usuario usuario = negocioUsuario.validarCredenciais(email, senha);
@@ -41,17 +45,17 @@ public class NegocioSessao {
         return false;
     }
 
-    private void login(Usuario usuario) {
+    private void login(Usuario usuario) throws UsuarioVazioException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new UsuarioVazioException();
         }
         
         this.usuarioLogado = usuario;
     }
     
-    public void logout() throws IllegalStateException {
+    public void logout() throws SessaoJaInativaException {
         if (!estaLogado()) {
-            throw new IllegalStateException("Nenhum usuário está logado para fazer logout");
+            throw new SessaoJaInativaException();
         }
         this.usuarioLogado = null;
     }
@@ -60,11 +64,11 @@ public class NegocioSessao {
         return usuarioLogado != null;
     }
     
-    public String getNomeUsuarioLogado() throws IllegalStateException {
+    public String getNomeUsuarioLogado() throws SessaoJaInativaException {
         return getUsuarioLogado().getNome();
     }
     
-    public String getIdUsuarioLogado() throws IllegalStateException {
+    public String getIdUsuarioLogado() throws SessaoJaInativaException {
         return getUsuarioLogado().getId();
     }
 
@@ -72,14 +76,14 @@ public class NegocioSessao {
         return estaLogado() && usuarioLogado.equals(usuario);
     }
 
-    public void alterarSenhaUsuarioLogado(String senhaAtual, String novaSenha) 
-            throws IllegalArgumentException, IllegalStateException {
+    public void alterarSenhaUsuarioLogado(String senhaAtual, String novaSenha)
+            throws SessaoJaInativaException, SenhaTamanhoInvalidoException, SenhaIncorretaException, SenhaVaziaException, UsuarioVazioException {
         Usuario usuarioLogado = getUsuarioLogado();
         negocioUsuario.alterarSenha(usuarioLogado, senhaAtual, novaSenha);
     }
 
-    public void excluirContaUsuarioLogado(String senhaConfirmacao) 
-            throws IllegalArgumentException, IllegalStateException {
+    public void excluirContaUsuarioLogado(String senhaConfirmacao)
+            throws SessaoJaInativaException, SenhaIncorretaException, SenhaVaziaException, UsuarioVazioException {
         Usuario usuarioLogado = getUsuarioLogado();
         negocioUsuario.excluirConta(usuarioLogado, senhaConfirmacao);
         logout();

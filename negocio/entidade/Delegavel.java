@@ -1,5 +1,7 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.*;
+
 import java.util.List;
 
 // Interface que define capacidades de delegação para tarefas
@@ -12,15 +14,15 @@ public interface Delegavel {
     Status getStatus();
     Usuario getCriador();
 
-    default void setResponsaveis(List<Usuario> responsaveis) 
-            throws IllegalArgumentException {
+    default void setResponsaveis(List<Usuario> responsaveis)
+            throws DelegacaoListaVaziaException, DelegacaoResponsavelVazioException {
         if (responsaveis == null) {
-            throw new IllegalArgumentException("Lista de responsáveis não pode ser nula");
+            throw new DelegacaoListaVaziaException();
         }
         
         for (Usuario usuario : responsaveis) {
             if (usuario == null) {
-                throw new IllegalArgumentException("Lista contém usuário nulo");
+                throw new DelegacaoResponsavelVazioException();
             }
         }
         
@@ -30,14 +32,14 @@ public interface Delegavel {
     }
     
     default void setHistoricoDelegacao(List<RegistroDelegacao> historicoDelegacoes) 
-            throws IllegalArgumentException {
+            throws DelegacaoHistoricoVazioException {
         if (historicoDelegacoes == null) {
-            throw new IllegalArgumentException("Histórico de delegações não pode ser nulo");
+            throw new DelegacaoHistoricoVazioException();
         }
         
         for (RegistroDelegacao registro : historicoDelegacoes) {
             if (registro == null) {
-                throw new IllegalArgumentException("Histórico contém registro nulo");
+                throw new DelegacaoHistoricoVazioException();
             }
         }
         
@@ -46,54 +48,54 @@ public interface Delegavel {
         historicoAtual.addAll(historicoDelegacoes);
     }
     
-    default void adicionarResponsavel(Usuario usuario) 
-            throws IllegalArgumentException, IllegalStateException {
+    default void adicionarResponsavel(Usuario usuario)
+            throws DelegacaoResponsavelVazioException, DelegacaoResponsavelInvalidoException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         List<Usuario> responsaveis = getResponsaveis();
         if (responsaveis.contains(usuario)) {
-            throw new IllegalStateException("Usuário já é responsável por esta tarefa");
+            throw new DelegacaoResponsavelInvalidoException(usuario);
         }
         
         responsaveis.add(usuario);
     }
     
-    default void removerResponsavel(Usuario usuario) 
-            throws IllegalArgumentException, IllegalStateException {
+    default void removerResponsavel(Usuario usuario)
+            throws DelegacaoRemoverResponsavelException, DelegacaoResponsavelInvalidoException, DelegacaoResponsavelVazioException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         if (usuario.equals(getResponsavelOriginal())) {
-            throw new IllegalStateException("Não é possível remover o responsável original");
+            throw new DelegacaoRemoverResponsavelException(usuario);
         }
         
         List<Usuario> responsaveis = getResponsaveis();
         if (!responsaveis.contains(usuario)) {
-            throw new IllegalStateException("Usuário não é responsável por esta tarefa");
+            throw new DelegacaoResponsavelInvalidoException(usuario);
         }
         
         responsaveis.remove(usuario);
     }
     
-    default void registrarDelegacao(Usuario responsavel, String motivo) 
-            throws IllegalArgumentException, IllegalStateException {
+    default void registrarDelegacao(Usuario responsavel, String motivo)
+            throws DelegacaoResponsavelVazioException, DelegacaoMotivoException, DelegacaoStatusInvalidoException, DelegacaoRegistroInvalidoException, CriadorVazioException {
         if (responsavel == null) {
-            throw new IllegalArgumentException("Responsável não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         if (motivo == null || motivo.trim().isEmpty()) {
-            throw new IllegalArgumentException("Motivo da delegação não pode ser vazio");
+            throw new DelegacaoMotivoException();
         }
         
         if (!podeSerDelegada()) {
-            throw new IllegalStateException("Tarefa não pode ser delegada no status atual");
+            throw new DelegacaoStatusInvalidoException();
         }
         
         if (!ehResponsavel(responsavel)) {
-            throw new IllegalStateException("Usuário deve ser responsável pela tarefa para registrar delegação");
+            throw new DelegacaoRegistroInvalidoException();
         }
         
         RegistroDelegacao registro = new RegistroDelegacao(getCriador(), responsavel, motivo);
@@ -104,47 +106,49 @@ public interface Delegavel {
         return getStatus() == Status.PENDENTE || getStatus() == Status.EM_PROGRESSO;
     }
     
-    default void delegarPara(Usuario novoResponsavel) 
-            throws IllegalArgumentException, IllegalStateException {
+    default void delegarPara(Usuario novoResponsavel)
+            throws DelegacaoStatusInvalidoException, DelegacaoResponsavelInvalidoException, DelegacaoMotivoException,
+            DelegacaoRegistroInvalidoException, DelegacaoResponsavelVazioException, CriadorVazioException {
         if (novoResponsavel == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         if (!podeSerDelegada()) {
-            throw new IllegalStateException("Tarefa não pode ser delegada no status atual");
+            throw new DelegacaoStatusInvalidoException();
         }
         
         adicionarResponsavel(novoResponsavel);
         registrarDelegacao(novoResponsavel, "Delegação direta");
     }
     
-    default void delegarParaEquipe(List<Usuario> equipe, String motivo) 
-            throws IllegalArgumentException, IllegalStateException {
+    default void delegarParaEquipe(List<Usuario> equipe, String motivo)
+            throws DelegacaoListaVaziaException, DelegacaoMotivoException, DelegacaoStatusInvalidoException, DelegacaoResponsavelVazioException,
+            DelegacaoRegistroInvalidoException, DelegacaoResponsavelInvalidoException, CriadorVazioException {
         if (equipe == null || equipe.isEmpty()) {
-            throw new IllegalArgumentException("Equipe não pode ser vazia");
+            throw new DelegacaoListaVaziaException();
         }
         
         if (motivo == null || motivo.trim().isEmpty()) {
-            throw new IllegalArgumentException("Motivo da delegação para equipe não pode ser vazio");
+            throw new DelegacaoMotivoException();
         }
         
         if (!podeSerDelegada()) {
-            throw new IllegalStateException("Tarefa não pode ser delegada no status atual");
+            throw new DelegacaoStatusInvalidoException();
         }
         
         for (Usuario membro : equipe) {
             if (membro == null) {
-                throw new IllegalArgumentException("Equipe contém usuário nulo");
+                throw new DelegacaoResponsavelVazioException();
             }
             adicionarResponsavel(membro);
             registrarDelegacao(membro, "Delegação para equipe: " + motivo);
         }
     }
     
-    default void removerDelegacao(Usuario responsavel) 
-            throws IllegalArgumentException {
+    default void removerDelegacao(Usuario responsavel)
+            throws DelegacaoResponsavelVazioException, DelegacaoRemoverResponsavelException, DelegacaoResponsavelInvalidoException {
         if (responsavel == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         removerResponsavel(responsavel);
     }

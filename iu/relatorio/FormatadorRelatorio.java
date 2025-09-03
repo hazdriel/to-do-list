@@ -9,13 +9,12 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.Map;
 
-// Classe para formatação de relatórios
+// Formatador para geração de relatórios em texto
 public class FormatadorRelatorio {
     
     private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     
-    // Formata relatório de produtividade
     public String formatarRelatorioProdutividade(DadosEstatisticos dados, Usuario usuario) {
         StringBuilder sb = new StringBuilder();
         
@@ -28,7 +27,6 @@ public class FormatadorRelatorio {
         sb.append("🕒 Gerado em: ").append(LocalDateTime.now().format(FORMATO_DATA_HORA)).append("\n");
         sb.append("═══════════════════════════════════════════════════════════\n\n");
         
-        // Resumo geral
         sb.append(criarSeparadorComTitulo("📊 RESUMO GERAL"));
         sb.append("• Total de Tarefas Criadas: ").append(dados.getTotalTarefas()).append("\n");
         sb.append("• Tarefas Concluídas: ").append(dados.getTarefasConcluidas()).append("\n");
@@ -37,7 +35,6 @@ public class FormatadorRelatorio {
         sb.append("• Tarefas Pendentes: ").append(dados.getTarefasPendentes()).append("\n");
         sb.append("• Tarefas em Progresso: ").append(dados.getTarefasEmProgresso()).append("\n\n");
         
-        // Distribuição por categoria
         if (!dados.getDistribuicaoPorCategoria().isEmpty()) {
             sb.append(criarSeparadorComTitulo("📂 DISTRIBUIÇÃO POR CATEGORIA"));
             for (Map.Entry<Categoria, Integer> entry : dados.getDistribuicaoPorCategoria().entrySet()) {
@@ -47,8 +44,7 @@ public class FormatadorRelatorio {
             }
             sb.append("\n");
         }
-        
-        // Distribuição por prioridade  
+          
         if (!dados.getDistribuicaoPorPrioridade().isEmpty()) {
             sb.append(criarSeparadorComTitulo("⚡ DISTRIBUIÇÃO POR PRIORIDADE"));
             for (Map.Entry<Prioridade, Integer> entry : dados.getDistribuicaoPorPrioridade().entrySet()) {
@@ -88,13 +84,11 @@ public class FormatadorRelatorio {
         }
         sb.append("└─────────────────┴──────────┴────────────┘\n\n");
         
-        // Tarefas que precisam atenção
         sb.append(formatarTarefasAtencao(tarefasAtencao));
         
         return sb.toString();
     }
-    
-    // Formata relatório temporal
+
     public String formatarRelatorioTemporal(Map<LocalDateTime, Long> produtividadeDiaria, 
                                            DadosEstatisticos dados, 
                                            Usuario usuario,
@@ -110,7 +104,6 @@ public class FormatadorRelatorio {
         sb.append("🕒 Gerado em: ").append(LocalDateTime.now().format(FORMATO_DATA_HORA)).append("\n");
         sb.append("═══════════════════════════════════════════════════════════\n\n");
         
-        // Produtividade diária
         sb.append(criarSeparadorComTitulo("📈 PRODUTIVIDADE DIÁRIA"));
         
         LocalDateTime dataAtual = dataInicio;
@@ -133,7 +126,6 @@ public class FormatadorRelatorio {
             dataAtual = dataAtual.plusDays(1);
         }
         
-        // Estatísticas do período
         sb.append("\n").append(criarSeparadorComTitulo("📊 ESTATÍSTICAS DO PERÍODO"));
         long totalConcluidas = produtividadeDiaria.values().stream().mapToLong(Long::longValue).sum();
         double mediaDiaria = (double) totalConcluidas / diasPeriodo;
@@ -145,14 +137,12 @@ public class FormatadorRelatorio {
         return sb.toString();
     }
     
-    // Métodos auxiliares de formatação
     
     private String formatarTarefasAtencao(TarefasAtencao tarefasAtencao) {
         StringBuilder sb = new StringBuilder();
         
         sb.append(criarSeparadorComTitulo("⚠️ TAREFAS QUE PRECISAM DE ATENÇÃO"));
         
-        // Tarefas atrasadas
         if (!tarefasAtencao.getAtrasadas().isEmpty()) {
             sb.append("🔴 ATRASADAS (").append(tarefasAtencao.getAtrasadas().size()).append("):\n");
             for (TarefaAbstrata tarefa : tarefasAtencao.getAtrasadas().subList(0, Math.min(5, tarefasAtencao.getAtrasadas().size()))) {
@@ -167,7 +157,7 @@ public class FormatadorRelatorio {
             sb.append("\n");
         }
         
-        // Tarefas que vencem hoje
+
         if (!tarefasAtencao.getVencemHoje().isEmpty()) {
             sb.append("🟡 VENCEM HOJE (").append(tarefasAtencao.getVencemHoje().size()).append("):\n");
             for (TarefaAbstrata tarefa : tarefasAtencao.getVencemHoje().subList(0, Math.min(5, tarefasAtencao.getVencemHoje().size()))) {
@@ -177,7 +167,7 @@ public class FormatadorRelatorio {
             sb.append("\n");
         }
         
-        // Tarefas que vencem amanhã
+
         if (!tarefasAtencao.getVencemAmanha().isEmpty()) {
             sb.append("🟠 VENCEM AMANHÃ (").append(tarefasAtencao.getVencemAmanha().size()).append("):\n");
             for (TarefaAbstrata tarefa : tarefasAtencao.getVencemAmanha().subList(0, Math.min(5, tarefasAtencao.getVencemAmanha().size()))) {

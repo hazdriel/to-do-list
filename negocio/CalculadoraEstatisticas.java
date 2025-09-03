@@ -2,6 +2,9 @@ package negocio;
 
 import negocio.entidade.*;
 import dados.RepositorioTarefas;
+import negocio.excecao.tarefa.RepositorioTarefasVazioException;
+import negocio.excecao.usuario.UsuarioVazioException;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.Duration;
@@ -14,16 +17,16 @@ public class CalculadoraEstatisticas {
     
     private final RepositorioTarefas repositorioTarefas;
     
-    public CalculadoraEstatisticas(RepositorioTarefas repositorioTarefas) {
+    public CalculadoraEstatisticas(RepositorioTarefas repositorioTarefas) throws RepositorioTarefasVazioException {
         if (repositorioTarefas == null) {
-            throw new IllegalArgumentException("Repositório de tarefas não pode ser nulo");
+            throw new RepositorioTarefasVazioException();
         }
         this.repositorioTarefas = repositorioTarefas;
     }
     
-    public DadosEstatisticos calcularEstatisticas(Usuario usuario, LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public DadosEstatisticos calcularEstatisticas(Usuario usuario, LocalDateTime dataInicio, LocalDateTime dataFim) throws UsuarioVazioException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new UsuarioVazioException();
         }
         
         DadosEstatisticos dados = new DadosEstatisticos();
@@ -48,7 +51,7 @@ public class CalculadoraEstatisticas {
         return dados;
     }
     
-    public DadosEstatisticos calcularEstatisticas(Usuario usuario) {
+    public DadosEstatisticos calcularEstatisticas(Usuario usuario) throws UsuarioVazioException {
         return calcularEstatisticas(usuario, null, null);
     }
     

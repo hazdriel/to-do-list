@@ -1,5 +1,8 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.CriadorVazioException;
+import negocio.excecao.tarefa.DelegacaoResponsavelVazioException;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -12,12 +15,12 @@ public class RegistroDelegacao implements Serializable {
     private final LocalDateTime dataDelegacao;
     private final String motivo;
     
-    public RegistroDelegacao(Usuario delegador, Usuario delegado, String motivo) {
+    public RegistroDelegacao(Usuario delegador, Usuario delegado, String motivo) throws CriadorVazioException, DelegacaoResponsavelVazioException {
         if (delegador == null) {
-            throw new IllegalArgumentException("Delegador não pode ser nulo");
+            throw new CriadorVazioException();
         }
         if (delegado == null) {
-            throw new IllegalArgumentException("Delegado não pode ser nulo");
+            throw new DelegacaoResponsavelVazioException();
         }
         
         this.delegador = delegador;

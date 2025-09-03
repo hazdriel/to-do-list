@@ -9,6 +9,9 @@ import java.util.Optional;
 import negocio.entidade.Usuario;
 import negocio.entidade.GeradorId;
 
+// Repositório para gerenciar persistência de usuários
+import negocio.excecao.usuario.UsuarioVazioException;
+
 public class RepositorioUsuarios {
     
     private final Map<String, Usuario> usuarios = new HashMap<>();
@@ -26,9 +29,9 @@ public class RepositorioUsuarios {
     
     // MÉTODOS BÁSICOS DE CRUD
     
-    public void inserirUsuario(Usuario usuario) {
+    public void inserirUsuario(Usuario usuario) throws UsuarioVazioException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new UsuarioVazioException();
         }
         
         usuarios.put(usuario.getEmail(), usuario);
@@ -57,9 +60,9 @@ public class RepositorioUsuarios {
         return new ArrayList<>(usuarios.values());
     }
     
-    public void atualizarUsuario(Usuario usuario) {
+    public void atualizarUsuario(Usuario usuario) throws UsuarioVazioException {
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não pode ser nulo");
+            throw new UsuarioVazioException();
         }
         
         usuarios.put(usuario.getEmail(), usuario);

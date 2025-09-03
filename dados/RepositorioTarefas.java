@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import negocio.entidade.*;
+import negocio.excecao.tarefa.TarefaVaziaException;
+
+// Repositório para gerenciar persistência de tarefas
 
 public class RepositorioTarefas {
     
@@ -25,9 +28,9 @@ public class RepositorioTarefas {
 
     // MÉTODOS BÁSICOS DE CRUD
     
-    public void inserirTarefa(TarefaAbstrata tarefa) {
+    public void inserirTarefa(TarefaAbstrata tarefa) throws TarefaVaziaException {
         if (tarefa == null) {
-            throw new IllegalArgumentException("Tarefa não pode ser nula");
+            throw new TarefaVaziaException();
         }
         tarefas.put(tarefa.getId(), tarefa);
         salvarDados();
@@ -41,9 +44,9 @@ public class RepositorioTarefas {
         return Optional.ofNullable(tarefas.get(id));
     }
 
-    public boolean atualizarTarefa(TarefaAbstrata tarefaAtualizada) {
+    public boolean atualizarTarefa(TarefaAbstrata tarefaAtualizada) throws TarefaVaziaException {
         if (tarefaAtualizada == null) {
-            throw new IllegalArgumentException("Tarefa não pode ser nula");
+            throw new TarefaVaziaException();
         }
         
         if (tarefas.containsKey(tarefaAtualizada.getId())) {

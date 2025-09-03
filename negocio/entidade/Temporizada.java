@@ -1,5 +1,7 @@
 package negocio.entidade;
 
+import negocio.excecao.tarefa.*;
+
 import java.time.LocalDateTime;
 import java.time.Duration;
 
@@ -9,17 +11,17 @@ public interface Temporizada {
     
     LocalDateTime getPrazoFinal();
     
-    void setPrazoFinal(LocalDateTime prazoFinal);
+    void setPrazoFinal(LocalDateTime prazoFinal) throws PrazoVazioException, PrazoInvalidoException, AtualizarTarefaException;
     
     Duration getEstimativa();
     
-    void setEstimativa(Duration estimativa);
+    void setEstimativa(Duration estimativa) throws TemporizadaEstimativaException, AtualizarTarefaException;
     
     Duration getTempoGasto();
     
-    void setTempoGasto(Duration tempoGasto);
+    void setTempoGasto(Duration tempoGasto) throws TemporizadaTempoException, AtualizarTarefaException, TemporizadaEstimativaException;
     
-    default void registrarTrabalho(Duration tempo) {
+    default void registrarTrabalho(Duration tempo) throws TemporizadaEstimativaException, TemporizadaTempoException, AtualizarTarefaException, TemporizadaDuracaoException {
         Duration tempoAtual = getTempoGasto();
         setTempoGasto(tempoAtual.plus(tempo));
     }
