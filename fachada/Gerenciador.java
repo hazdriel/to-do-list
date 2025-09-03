@@ -16,8 +16,10 @@ import java.time.Period;
 import java.util.List;
 import java.util.Map;
 
-// Classe fachada que coordena as operações entre as camadas do sistema
-
+/**
+ * Fachada que coordena as operações entre as camadas do sistema.
+ * Responsável apenas por orquestrar chamadas, NÃO trata exceções.
+ */
 public class Gerenciador {
 
     private RepositorioTarefas repositorioTarefas;
@@ -43,13 +45,16 @@ public class Gerenciador {
         negocioCategoria.garantirCategoriasPadrao();
     }
 
+    // ========================================
     // GERENCIAMENTO DE SESSÃO E AUTENTICAÇÃO
+    // ========================================
     
     public boolean fazerLogin(String email, String senha) {
         return negocioSessao.autenticar(email, senha);
     }
 
-    public void cadastrarUsuario(String nome, String email, String senha) {
+    public void cadastrarUsuario(String nome, String email, String senha) 
+            throws IllegalArgumentException {
         negocioUsuario.cadastrarUsuario(nome, email, senha);
     }
 
@@ -65,57 +70,71 @@ public class Gerenciador {
         negocioSessao.logout();
     }
 
-    public void alterarSenha(String senhaAtual, String novaSenha) {
+    public void alterarSenha(String senhaAtual, String novaSenha) 
+            throws IllegalArgumentException, IllegalStateException {
         negocioSessao.alterarSenhaUsuarioLogado(senhaAtual, novaSenha);
     }
 
-    public void excluirConta(String senhaConfirmacao) {
+    public void excluirConta(String senhaConfirmacao) 
+            throws IllegalArgumentException, IllegalStateException {
         negocioSessao.excluirContaUsuarioLogado(senhaConfirmacao);
     }
 
+    // ========================================
     // CRIAÇÃO DE TAREFAS
+    // ========================================
     
     public void criarTarefaSimples(String titulo, String descricao, Prioridade prioridade, 
-                                   LocalDateTime prazo, Categoria categoria) {
+                                   LocalDateTime prazo, Categoria categoria) 
+            throws IllegalArgumentException, IllegalStateException {
         negocioTarefa.criarTarefaSimples(titulo, descricao, prioridade, prazo, categoria);
     }
 
     public void criarTarefaDelegavel(String titulo, String descricao, Prioridade prioridade, 
-                                     LocalDateTime prazo, Categoria categoria, Usuario responsavel) {
+                                     LocalDateTime prazo, Categoria categoria, Usuario responsavel) 
+            throws IllegalArgumentException, IllegalStateException {
         negocioTarefa.criarTarefaDelegavel(titulo, descricao, prioridade, prazo, categoria, responsavel);
     }
 
     public void criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
-                                      LocalDateTime prazo, Categoria categoria, Period periodicidade) {
+                                      LocalDateTime prazo, Categoria categoria, Period periodicidade) 
+            throws IllegalArgumentException, IllegalStateException {
         negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, periodicidade);
     }
 
     public void criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 
-                                       LocalDateTime prazo, Categoria categoria, LocalDateTime prazoFinal, 
-                                       Duration estimativa) {
-        negocioTarefa.criarTarefaTemporizada(titulo, descricao, prioridade, prazo, categoria, prazoFinal, estimativa);
+                                       LocalDateTime prazo, Categoria categoria, Duration duracaoSessao, 
+                                       Duration duracaoPausa, int totalSessoes) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.criarTarefaTemporizada(titulo, descricao, prioridade, prazo, categoria, duracaoSessao, duracaoPausa, totalSessoes);
     }
 
+    // ========================================
     // CONSULTA E LISTAGEM DE TAREFAS
+    // ========================================
     
     public List<TarefaAbstrata> listarTarefas() {
         return negocioTarefa.listarTarefas();
     }
 
-    public TarefaAbstrata buscarTarefa(String id) {
+    public TarefaAbstrata buscarTarefaPorId(String id) 
+            throws IllegalArgumentException {
         return negocioTarefa.buscarTarefaPorId(id);
     }
 
     // Listagens por critério
-    public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade) {
+    public List<TarefaAbstrata> listarPorPrioridade(Prioridade prioridade) 
+            throws IllegalArgumentException {
         return negocioTarefa.listarPorPrioridade(prioridade);
     }
 
-    public List<TarefaAbstrata> listarPorCategoria(Categoria categoria) {
+    public List<TarefaAbstrata> listarPorCategoria(Categoria categoria) 
+            throws IllegalArgumentException {
         return negocioTarefa.listarTarefasPorCategoria(categoria);
     }
 
-    public List<TarefaAbstrata> listarPorTipo(String tipo) {
+    public List<TarefaAbstrata> listarPorTipo(String tipo) 
+            throws IllegalArgumentException {
         return negocioTarefa.listarPorTipo(tipo);
     }
 
@@ -149,116 +168,93 @@ public class Gerenciador {
         return negocioTarefa.listarTarefasDelegadas();
     }
 
+    // ========================================
     // MODIFICAÇÃO DE TAREFAS
+    // ========================================
     
-    public boolean atualizarTarefa(String id, String novoTitulo, String novaDescricao, 
-                                   Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria) {
-        try {
-            negocioTarefa.atualizarTarefa(id, novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void atualizarTarefa(String id, String novoTitulo, String novaDescricao, 
+                               Prioridade novaPrioridade, LocalDateTime novoPrazo, Categoria novaCategoria) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.atualizarTarefa(id, novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
     }
 
-    public boolean removerTarefa(String id) {
-        try {
-            negocioTarefa.removerTarefa(id);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void removerTarefa(String id) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.removerTarefa(id);
     }
 
-    public boolean salvarTarefa(TarefaAbstrata tarefa) {
-        if (tarefa == null) return false;
-        return atualizarTarefa(tarefa.getId(), tarefa.getTitulo(), 
-                              tarefa.getDescricao(), tarefa.getPrioridade(), 
-                              tarefa.getPrazo(), tarefa.getCategoria());
-    }
-
+    // ========================================
     // CONTROLE DE STATUS DE TAREFAS
+    // ========================================
     
-    public boolean concluirTarefa(String id) {
-        try {
-            negocioTarefa.concluirTarefa(id);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void concluirTarefa(String id) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.concluirTarefa(id);
     }
 
-    public boolean iniciarTarefa(String id) {
-        try {
-            negocioTarefa.iniciarTarefa(id);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void iniciarTarefa(String id) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.iniciarTarefa(id);
     }
 
-    public boolean cancelarTarefa(String id) {
-        try {
-            negocioTarefa.cancelarTarefa(id);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void cancelarTarefa(String id) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.cancelarTarefa(id);
     }
 
-    public boolean delegarTarefa(String id, Usuario novoResponsavel) {
-        try {
-            negocioTarefa.delegarTarefa(id, novoResponsavel);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
+    public void delegarTarefa(String id, Usuario novoResponsavel) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.delegarTarefa(id, novoResponsavel);
     }
 
-    public boolean registrarTrabalho(String id, Duration duracao) {
-        try {
-            negocioTarefa.registrarTrabalho(id, duracao);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return false;
-        }
-    }
 
+
+    // ========================================
     // GERENCIAMENTO DE USUÁRIOS
+    // ========================================
     
     public List<Usuario> listarUsuarios() {
         return negocioUsuario.listarTodos();
     }
     
-    public Usuario buscarUsuarioPorId(String id) {
+    public Usuario buscarUsuarioPorId(String id) 
+            throws IllegalArgumentException {
         return negocioUsuario.buscarUsuarioPorId(id);
     }
     
-    public Usuario buscarUsuarioPorEmail(String email) {
+    public Usuario buscarUsuarioPorEmail(String email) 
+            throws IllegalArgumentException {
         return negocioUsuario.buscarUsuarioPorEmail(email);
     }
 
+    // ========================================
     // GERENCIAMENTO DE CATEGORIAS
+    // ========================================
   
     public List<Categoria> listarCategorias() {
         return negocioCategoria.listarCategoriasDoUsuario();
     }
     
-    public Categoria criarCategoria(String nome) {
+    public Categoria criarCategoria(String nome) 
+            throws IllegalArgumentException {
         return negocioCategoria.criarCategoria(nome);
     }
 
-    public boolean removerCategoria(String nomeCategoria) {
-        return negocioCategoria.removerCategoria(nomeCategoria);
+    public void removerCategoria(String nomeCategoria) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioCategoria.removerCategoria(nomeCategoria);
     }
 
     public boolean isCategoriaPadrao(String nomeCategoria) {
         return negocioCategoria.isCategoriaPadrao(nomeCategoria);
     }
     
-    // BLOCO 8: RELATÓRIOS E ESTATÍSTICAS
+    // ========================================
+    // RELATÓRIOS E ESTATÍSTICAS
+    // ========================================
     
-    public DadosEstatisticos obterEstatisticasProdutividade(LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public DadosEstatisticos obterEstatisticasProdutividade(LocalDateTime dataInicio, LocalDateTime dataFim) 
+            throws IllegalArgumentException {
         return calculadoraEstatisticas.calcularEstatisticas(negocioSessao.getUsuarioLogado(), dataInicio, dataFim);
     }
     
@@ -267,15 +263,46 @@ public class Gerenciador {
         return dados.getTarefasAtencao();
     }
     
-    public Map<LocalDateTime, Long> obterProdutividadeTemporal(LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public Map<LocalDateTime, Long> obterProdutividadeTemporal(LocalDateTime dataInicio, LocalDateTime dataFim) 
+            throws IllegalArgumentException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorDia(negocioSessao.getUsuarioLogado(), dataInicio, dataFim);
     }
     
-    public long contarTarefasConcluidasPorCategoria(Categoria categoria) {
+    public long contarTarefasConcluidasPorCategoria(Categoria categoria) 
+            throws IllegalArgumentException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorCategoria(negocioSessao.getUsuarioLogado(), categoria);
     }
     
-    public long contarTarefasConcluidasPorPrioridade(Prioridade prioridade) {
+    public long contarTarefasConcluidasPorPrioridade(Prioridade prioridade) 
+            throws IllegalArgumentException {
         return calculadoraEstatisticas.contarTarefasConcluidasPorPrioridade(negocioSessao.getUsuarioLogado(), prioridade);
+    }
+
+    // ========================================
+    // CONTROLE DE SESSÕES POMODORO
+    // ========================================
+    
+    public List<TarefaTemporizada> listarTarefasTemporizadas() {
+        return negocioTarefa.listarTarefasTemporizadas();
+    }
+    
+    public void iniciarSessaoPomodoro(String idTarefa) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.iniciarSessaoPomodoro(idTarefa);
+    }
+    
+    public void pausarSessaoPomodoro(String idTarefa) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.pausarSessaoPomodoro(idTarefa);
+    }
+    
+    public void retomarSessaoPomodoro(String idTarefa) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.retomarSessaoPomodoro(idTarefa);
+    }
+    
+    public void concluirSessaoPomodoro(String idTarefa) 
+            throws IllegalArgumentException, IllegalStateException {
+        negocioTarefa.concluirSessaoPomodoro(idTarefa);
     }
 }

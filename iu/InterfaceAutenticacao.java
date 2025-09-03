@@ -26,16 +26,17 @@ public final class InterfaceAutenticacao {
      */
     public boolean exibirTelaLogin() {
         while (true) { // Usar um loop é mais seguro que recursão para menus.
-            UtilitariosInterface.limparTela();
+            
             System.out.println("===================================");
-            System.out.println("      BEM-VINDO AO TO-DO LIST      ");
+            System.out.println("  BEM-VINDO AO LÚMINA - TO-DO-LIST ");
             System.out.println("===================================");
             System.out.println("1 -> Fazer Login");
-            System.out.println("2 -> Cadastrar Novo Utilizador");
+            System.out.println("2 -> Cadastrar novo usuário");
             System.out.println("0 -> Sair do Sistema");
             System.out.print("Escolha uma opção: ");
             
             int opcao = UtilitariosInterface.lerInteiro(scanner);
+            scanner.nextLine(); // Consumir a quebra de linha restante
             
             switch (opcao) {
                 case 1:
@@ -58,8 +59,8 @@ public final class InterfaceAutenticacao {
      * Conduz o processo de login do utilizador.
      */
     private void realizarLogin() {
-        UtilitariosInterface.limparTela();
-        System.out.println("--- LOGIN DE ACESSO ---");
+        
+        System.out.println("--- LOGIN DE ACESSO AO SISTEMA ---");
         System.out.print("📧 Email: ");
         String email = scanner.nextLine().trim();
         System.out.print("🔒 Senha: ");
@@ -77,8 +78,8 @@ public final class InterfaceAutenticacao {
      * Conduz o processo de cadastro de um novo utilizador.
      */
     private void realizarCadastro() {
-        UtilitariosInterface.limparTela();
-        System.out.println("--- CADASTRO DE NOVO UTILIZADOR ---");
+        
+        System.out.println("--- CADASTRO DE NOVO USUÁRIO ---");
         System.out.print("👤 Nome Completo: ");
         String nome = scanner.nextLine().trim();
         System.out.print("📧 Email: ");
@@ -88,10 +89,10 @@ public final class InterfaceAutenticacao {
         
         try {
             gerenciador.cadastrarUsuario(nome, email, senha);
-            System.out.println("\n✅ Utilizador cadastrado com sucesso! Agora, por favor, faça o login.");
+            System.out.println("\n✅ Usuário cadastrado com sucesso! Agora, por favor, faça o login.");
         } catch (Exception e) {
             // Exibe uma mensagem mais amigável para o utilizador.
-            System.out.println("\n❌ Erro ao cadastrar utilizador: " + e.getMessage());
+            System.out.println("\n❌ Erro ao cadastrar usuário: " + e.getMessage());
         }
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
@@ -100,9 +101,9 @@ public final class InterfaceAutenticacao {
      * Realiza o processo de logout do utilizador atual.
      */
     public void realizarLogout() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- LOGOUT ---");
-        System.out.println("🚪 A sua sessão está a ser encerrada...");
+        System.out.println("🚪 A sua sessão está sendo encerrada...");
         
         gerenciador.fazerLogout();
         

@@ -22,6 +22,7 @@ public final class InterfacePrincipalRefatorada {
     private final InterfaceVisualizacao interfaceVisualizacao;
     private final InterfaceCategorias interfaceCategorias;
     private final InterfaceRelatorios interfaceRelatorios;
+    private final InterfacePerfil interfacePerfil;
     
     public InterfacePrincipalRefatorada(Gerenciador gerenciador) {
         this.scanner = new Scanner(System.in);
@@ -34,16 +35,14 @@ public final class InterfacePrincipalRefatorada {
         this.interfaceVisualizacao = new InterfaceVisualizacao(scanner, gerenciador);
         this.interfaceCategorias = new InterfaceCategorias(scanner, gerenciador);
         this.interfaceRelatorios = new InterfaceRelatorios(scanner, gerenciador);
+        this.interfacePerfil = new InterfacePerfil(scanner, gerenciador);
     }
     
     /**
      * Ponto de entrada que inicia e controla o loop principal do sistema.
      */
     public void executar() {
-        UtilitariosInterface.limparTela();
-        System.out.println("🚀 Bem-vindo(a) ao Sistema To-Do List!");
-        UtilitariosInterface.pressioneEnterParaContinuar(scanner);
-        
+    
         while (executando) {
             if (!gerenciador.estaLogado()) {
                 boolean continuar = interfaceAutenticacao.exibirTelaLogin();
@@ -55,8 +54,8 @@ public final class InterfacePrincipalRefatorada {
             }
         }
         
-        UtilitariosInterface.limparTela();
-        System.out.println("👋 Obrigado por usar o sistema! Até a próxima.");
+        
+        System.out.println("👋 Obrigado por usar o Lúmina! Até a próxima.");
         scanner.close();
     }
     
@@ -64,12 +63,12 @@ public final class InterfacePrincipalRefatorada {
      * Exibe o menu principal e encaminha o utilizador para o módulo escolhido.
      */
     private void exibirMenuPrincipal() {
-        UtilitariosInterface.limparTela();
+        
         exibirCabecalhoDoMenu();
         
-        System.out.println("1 -> 📝 Gerir Tarefas");
+        System.out.println("1 -> 📝 Gerenciar Tarefas");
         System.out.println("2 -> 🔍 Visualizar Tarefas");
-        System.out.println("3 -> 📂 Gerir Categorias");
+        System.out.println("3 -> 📂 Gerenciar Categorias");
         System.out.println("4 -> 📊 Ver Relatórios");
         System.out.println("5 -> 👤 Ver Perfil");
         System.out.println("6 -> 🚪 Logout");
@@ -104,13 +103,13 @@ public final class InterfacePrincipalRefatorada {
             case 2 -> interfaceVisualizacao.exibirMenuVisualizacao(); // Nome do método ajustado
             case 3 -> interfaceCategorias.exibirMenuCategorias();
             case 4 -> interfaceRelatorios.exibirMenuRelatorios();
-            case 5 -> exibirPerfilUsuario();
+            case 5 -> interfacePerfil.exibirMenuPerfil();
             case 6 -> {
                 interfaceAutenticacao.realizarLogout();
                 // A flag 'executando' continua true, o loop principal irá para a tela de login.
             }
             case 0 -> {
-                System.out.println("\nA sair do sistema...");
+                System.out.println("\nSaindo do sistema...");
                 executando = false;
             }
             default -> {
@@ -120,27 +119,5 @@ public final class InterfacePrincipalRefatorada {
         }
     }
     
-    /**
-     * Exibe as informações de perfil do utilizador logado.
-     */
-    private void exibirPerfilUsuario() {
-        Usuario usuario = gerenciador.getUsuarioLogado();
-        
-        UtilitariosInterface.limparTela();
-        System.out.println("=".repeat(40));
-        System.out.println("           👤 PERFIL DO UTILIZADOR 👤");
-        System.out.println("=".repeat(40));
-        
-        System.out.printf("ID:    %s\n", usuario.getId());
-        System.out.printf("Nome:  %s\n", usuario.getNome());
-        System.out.printf("Email: %s\n", usuario.getEmail());
-        
-        // Delega a exibição das estatísticas para o módulo de relatórios,
-        // mantendo a responsabilidade de cada classe bem definida.
-        System.out.println("\n--- Estatísticas Resumidas ---");
-        interfaceRelatorios.exibirEstatisticasResumidas(); // Assumindo que este método existe.
-        
-        System.out.println("\n" + "=".repeat(40));
-        UtilitariosInterface.pressioneEnterParaContinuar(scanner);
-    }
+
 }

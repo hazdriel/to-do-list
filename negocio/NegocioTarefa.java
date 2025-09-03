@@ -66,14 +66,13 @@ public class NegocioTarefa {
   }
 
   public TarefaTemporizada criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 
-                                                  LocalDateTime prazo, Categoria categoria, LocalDateTime prazoFinal, 
-                                                  java.time.Duration estimativa) 
+                                                  LocalDateTime prazo, Categoria categoria, java.time.Duration duracaoSessao, 
+                                                  java.time.Duration duracaoPausa, int totalSessoes) 
       throws IllegalArgumentException, IllegalStateException {
     validarParametrosCriacao(titulo, prioridade);
-    validarParametrosTemporizacao(prazoFinal, estimativa);
     verificarSessaoAtiva();
     
-    TarefaTemporizada tarefa = new TarefaTemporizada(titulo, descricao, prazo, prioridade, categoria, sessao.getUsuarioLogado(), prazoFinal, estimativa);
+    TarefaTemporizada tarefa = new TarefaTemporizada(titulo, descricao, prazo, prioridade, categoria, sessao.getUsuarioLogado(), duracaoSessao, duracaoPausa, totalSessoes);
     criarTarefa(tarefa);
     return tarefa;
   }
@@ -208,23 +207,7 @@ public class NegocioTarefa {
     return minhasTarefas;
   }
 
-  // MÉTODOS ESPECÍFICOS PARA TEMPORIZAÇÃO
-  
-  public void registrarTrabalho(String id, java.time.Duration duracao) throws IllegalArgumentException, IllegalStateException {
-    TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
-    
-    if (!(tarefa instanceof TarefaTemporizada)) {
-      throw new IllegalStateException("Tarefa não é temporizada");
-    }
-    
-    if (duracao == null || duracao.isNegative() || duracao.isZero()) {
-      throw new IllegalArgumentException("Duração deve ser positiva");
-    }
 
-    TarefaTemporizada tarefaTemp = (TarefaTemporizada) tarefa;
-    tarefaTemp.registrarTrabalho(duracao);
-    repositorioTarefas.atualizarTarefa(tarefa);
-  }
 
   // MÉTODOS DE CONTROLE DE STATUS
   
@@ -353,5 +336,59 @@ public class NegocioTarefa {
     if (!sessao.estaLogado()) {
       throw new IllegalStateException("Usuário deve estar logado");
     }
+  }
+  
+  // CONTROLE DE SESSÕES POMODORO
+  
+  public List<TarefaTemporizada> listarTarefasTemporizadas() throws IllegalStateException {
+    verificarSessaoAtiva();
+    List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTarefasPorUsuario(sessao.getUsuarioLogado());
+    List<TarefaTemporizada> tarefasTemporizadas = new ArrayList<>();
+    
+    for (TarefaAbstrata tarefa : todasTarefas) {
+      if (tarefa instanceof TarefaTemporizada) {
+        TarefaTemporizada tarefaTemp = (TarefaTemporizada) tarefa;
+        // Só adiciona se NÃO estiver completa
+        if (!tarefaTemp.isCompleta()) {
+          tarefasTemporizadas.add(tarefaTemp);
+        }
+      }
+    }
+    
+    return tarefasTemporizadas;
+  }
+  
+  public void iniciarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+    TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
+    tarefa.iniciarSessao();
+    repositorioTarefas.atualizarTarefa(tarefa);
+  }
+  
+  public void pausarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+    TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
+    tarefa.pausarSessao();
+    repositorioTarefas.atualizarTarefa(tarefa);
+  }
+  
+  public void retomarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+    TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
+    tarefa.retomarSessao();
+    repositorioTarefas.atualizarTarefa(tarefa);
+  }
+  
+  public void concluirSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+    TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
+    tarefa.concluirSessao();
+    repositorioTarefas.atualizarTarefa(tarefa);
+  }
+  
+  private TarefaTemporizada validarTarefaTemporizada(String id) throws IllegalArgumentException, IllegalStateException {
+    TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
+    
+    if (!(tarefa instanceof TarefaTemporizada)) {
+      throw new IllegalArgumentException("Tarefa não é do tipo Temporizada");
+    }
+    
+    return (TarefaTemporizada) tarefa;
   }
 }

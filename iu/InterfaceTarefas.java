@@ -28,14 +28,14 @@ public final class InterfaceTarefas {
     public void exibirMenuTarefas() {
     boolean executando = true;
     while (executando) {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- 📝 GERENCIAR TAREFAS ---");
-        System.out.println("1 -> Criar Tarefa");
+                System.out.println("1 -> Criar Tarefa");
         System.out.println("2 -> Atualizar Tarefa");
         System.out.println("3 -> Alterar Status de uma Tarefa");
-        System.out.println("4 -> Delegar Tarefa");      
-        System.out.println("5 -> Registrar Tempo de Trabalho"); 
-        System.out.println("6 -> Remover Tarefa");          
+        System.out.println("4 -> Delegar Tarefa");
+        System.out.println("5 -> Remover Tarefa");
+        System.out.println("6 -> Executar Tarefa Temporizada (Pomodoro)");
         System.out.println("0 -> Voltar ao Menu Principal");
         System.out.print("Escolha uma opção: ");
         
@@ -46,8 +46,8 @@ public final class InterfaceTarefas {
             case 2 -> atualizarTarefa();
             case 3 -> gerenciarStatusTarefa();
             case 4 -> delegarTarefa();
-            case 5 -> registrarTrabalho();     
-            case 6 -> removerTarefa();         
+            case 5 -> removerTarefa();
+            case 6 -> executarTarefaTemporizada();
             case 0 -> executando = false;
             default -> System.out.println("❌ Opção inválida.");
         }
@@ -63,7 +63,7 @@ public final class InterfaceTarefas {
  * Exibe um submenu para a criação de diferentes tipos de tarefas.
  */
 private void exibirMenuCriacaoTarefa() {
-    UtilitariosInterface.limparTela();
+    
     System.out.println("--- TIPO DE TAREFA A SER CRIADA ---");
     System.out.println("1 -> Tarefa Simples");
     System.out.println("2 -> Tarefa Delegável");
@@ -103,7 +103,7 @@ private void exibirMenuCriacaoTarefa() {
     }
 
     private void criarTarefaSimples() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- CRIAR TAREFA SIMPLES ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         try {
@@ -115,7 +115,7 @@ private void exibirMenuCriacaoTarefa() {
     }
 
     private void criarTarefaDelegavel() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- CRIAR TAREFA DELEGÁVEL ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         
@@ -132,7 +132,7 @@ private void exibirMenuCriacaoTarefa() {
     }
 
     private void criarTarefaRecorrente() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- CRIAR TAREFA RECORRENTE ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         Period periodicidade = UtilitariosInterface.lerPeriodicidade(scanner);
@@ -145,17 +145,85 @@ private void exibirMenuCriacaoTarefa() {
     }
 
     private void criarTarefaTemporizada() {
-        UtilitariosInterface.limparTela();
-        System.out.println("--- CRIAR TAREFA TEMPORIZADA ---");
-        TarefaDadosComuns dados = coletarDadosComunsTarefa();
-        System.out.println("Defina o prazo final da tarefa:");
-        LocalDateTime prazoFinal = UtilitariosInterface.lerDataHora(scanner);
-        Duration estimativa = UtilitariosInterface.lerDuracao(scanner);
+        System.out.println("--- CRIAR TAREFA TEMPORIZADA (POMODORO) ---");
+        
+        // Dados básicos (sem prioridade - será BAIXA por padrão)
+        String titulo = UtilitariosInterface.lerString(scanner, "Título: ");
+        String descricao = UtilitariosInterface.lerString(scanner, "Descrição: ");
+        System.out.println("Defina o prazo limite da tarefa:");
+        LocalDateTime prazo = UtilitariosInterface.lerDataHora(scanner);
+        Categoria categoria = selecionarCategoria();
+        
+        // Prioridade padrão para tarefas temporizadas
+        Prioridade prioridade = Prioridade.BAIXA;
+        
+        // Configurações do Pomodoro
+        System.out.println("\n🍅 CONFIGURAÇÕES DO POMODORO");
+        
+        // Duração da sessão
+        Duration duracaoSessao = UtilitariosInterface.lerDuracaoMinutos(scanner, 
+            "Duração da sessão em minutos (5-120, padrão: 25): ", 25, 5, 120);
+        
+        // Duração da pausa
+        Duration duracaoPausa = UtilitariosInterface.lerDuracaoMinutos(scanner, 
+            "Duração da pausa em minutos (1-60, padrão: 5): ", 5, 1, 60);
+        
+        // Total de sessões
+        int totalSessoes = lerTotalSessoes();
+        
         try {
-            gerenciador.criarTarefaTemporizada(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, prazoFinal, estimativa);
+            gerenciador.criarTarefaTemporizada(
+                titulo, descricao, prioridade, 
+                prazo, categoria, 
+                duracaoSessao, duracaoPausa, totalSessoes
+            );
             System.out.println("\n✅ Tarefa temporizada criada com sucesso!");
+            System.out.println("🍅 Configuração: " + duracaoSessao.toMinutes() + "min sessão + " + 
+                              duracaoPausa.toMinutes() + "min pausa × " + totalSessoes + " sessões");
+            
+            // Perguntar se quer iniciar imediatamente
+            System.out.print("\n🚀 Deseja iniciar a primeira sessão agora? (s/N): ");
+            String resposta = scanner.nextLine().trim().toLowerCase();
+            
+            if (resposta.equals("s") || resposta.equals("sim")) {
+                // Buscar a tarefa recém-criada e iniciar execução
+                List<TarefaTemporizada> tarefasTemporizadas = gerenciador.listarTarefasTemporizadas();
+                if (!tarefasTemporizadas.isEmpty()) {
+                    // Pegar a última tarefa criada (mais recente)
+                    TarefaTemporizada tarefaCriada = tarefasTemporizadas.get(tarefasTemporizadas.size() - 1);
+                    if (tarefaCriada.getTitulo().equals(titulo)) {
+                        System.out.println("\n🍅 Iniciando primeira sessão...");
+                        executarSessaoPomodoro(tarefaCriada);
+                    }
+                }
+            }
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lê o total de sessões do usuário.
+     */
+    private int lerTotalSessoes() {
+        while (true) {
+            System.out.print("Total de sessões (1-20, padrão: 4): ");
+            String entrada = scanner.nextLine().trim();
+            
+            if (entrada.isEmpty()) {
+                return 4; // Padrão
+            }
+            
+            try {
+                int sessoes = Integer.parseInt(entrada);
+                if (sessoes >= 1 && sessoes <= 20) {
+                    return sessoes;
+                } else {
+                    System.out.println("❌ Total de sessões deve ser entre 1 e 20.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Digite um número válido.");
+            }
         }
     }
 
@@ -173,13 +241,13 @@ private void adicionarResponsavel(Delegavel tarefa) {
 
     // Talvez O ideal seria chamar gerenciador.adicionarResponsavel(...).
     // vou manter a modificação direta + salvar aqui para simplicidade. !!!!!!!!!!!!!!!!!!!!!!!!
-    try {
-        tarefa.adicionarResponsavel(novoResponsavel);
-        gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
-        System.out.printf("\n✅ %s foi adicionado(a) como responsável.\n", novoResponsavel.getNome());
-    } catch (Exception e) {
-        System.out.println("\n❌ Erro ao adicionar responsável: " + e.getMessage());
-    }
+            try {
+            tarefa.adicionarResponsavel(novoResponsavel);
+            // Tarefa já é salva automaticamente pelo repositório
+            System.out.printf("\n✅ %s foi adicionado(a) como responsável.\n", novoResponsavel.getNome());
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro ao adicionar responsável: " + e.getMessage());
+        }
 }
 
 /**
@@ -205,7 +273,7 @@ private void removerResponsavel(Delegavel tarefa) {
         Usuario responsavelParaRemover = responsaveisAtuais.get(escolha - 1);
         try {
             tarefa.removerResponsavel(responsavelParaRemover);
-            gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
+            // Tarefa já é salva automaticamente pelo repositório
             System.out.printf("\n✅ %s foi removido(a) como responsável.\n", responsavelParaRemover.getNome());
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao remover responsável: " + e.getMessage());
@@ -220,7 +288,7 @@ private void removerResponsavel(Delegavel tarefa) {
     // =================================================================================
 
     private void atualizarTarefa() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- ATUALIZAR TAREFA ---");
         
         TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
@@ -244,19 +312,19 @@ private void removerResponsavel(Delegavel tarefa) {
         Categoria novaCategoria = selecionarCategoria();
         
         try {
-            boolean sucesso = gerenciador.atualizarTarefa(tarefa.getId(), novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
-            if (sucesso) {
-                System.out.println("\n✅ Tarefa atualizada com sucesso!");
-            } else {
-                System.out.println("\n❌ Não foi possível atualizar a tarefa.");
-            }
+            gerenciador.atualizarTarefa(tarefa.getId(), novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
+            System.out.println("\n✅ Tarefa atualizada com sucesso!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("\n❌ Erro de validação: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.out.println("\n❌ Operação não permitida: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("\n❌ Erro ao atualizar tarefa: " + e.getMessage());
+            System.out.println("\n❌ Erro inesperado ao atualizar tarefa: " + e.getMessage());
         }
     }
     
     private void removerTarefa() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- 🗑️ REMOVER TAREFA ---");
         
         TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
@@ -269,13 +337,14 @@ private void removerResponsavel(Delegavel tarefa) {
         
         if (confirmacao.equalsIgnoreCase("SIM")) {
             try {
-                if (gerenciador.removerTarefa(tarefa.getId())) {
-                    System.out.println("\n✅ Tarefa removida com sucesso!");
-                } else {
-                    System.out.println("\n❌ Não foi possível remover a tarefa.");
-                }
+                gerenciador.removerTarefa(tarefa.getId());
+                System.out.println("\n✅ Tarefa removida com sucesso!");
+            } catch (IllegalArgumentException e) {
+                System.out.println("\n❌ Erro de validação: " + e.getMessage());
+            } catch (IllegalStateException e) {
+                System.out.println("\n❌ Operação não permitida: " + e.getMessage());
             } catch (Exception e) {
-                System.out.println("\n❌ Erro ao remover tarefa: " + e.getMessage());
+                System.out.println("\n❌ Erro inesperado ao remover tarefa: " + e.getMessage());
             }
         } else {
             System.out.println("\nOperação cancelada.");
@@ -287,7 +356,7 @@ private void removerResponsavel(Delegavel tarefa) {
     // =================================================================================
 
     private void gerenciarStatusTarefa() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- ALTERAR STATUS DA TAREFA ---");
         
         TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
@@ -301,24 +370,23 @@ private void removerResponsavel(Delegavel tarefa) {
         int opcao = UtilitariosInterface.lerInteiro(scanner);
         
         try {
-            boolean sucesso = false;
             String acao = "";
             switch (opcao) {
-                case 1 -> { sucesso = gerenciador.iniciarTarefa(tarefa.getId()); acao = "iniciada"; }
-                case 2 -> { sucesso = gerenciador.concluirTarefa(tarefa.getId()); acao = "concluída"; }
-                case 3 -> { sucesso = gerenciador.cancelarTarefa(tarefa.getId()); acao = "cancelada"; }
+                case 1 -> { gerenciador.iniciarTarefa(tarefa.getId()); acao = "iniciada"; }
+                case 2 -> { gerenciador.concluirTarefa(tarefa.getId()); acao = "concluída"; }
+                case 3 -> { gerenciador.cancelarTarefa(tarefa.getId()); acao = "cancelada"; }
                 case 0 -> { System.out.println("\nOperação cancelada."); return; }
                 default -> { System.out.println("❌ Opção inválida."); return; }
             }
 
-            if(sucesso) {
-                System.out.printf("\n✅ Tarefa %s com sucesso!\n", acao);
-            } else {
-                System.out.printf("\n❌ Não foi possível alterar o status da tarefa para '%s'.\n", acao.toUpperCase());
-            }
+            System.out.printf("\n✅ Tarefa %s com sucesso!\n", acao);
 
+        } catch (IllegalArgumentException e) {
+            System.out.println("\n❌ Erro de validação: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.out.println("\n❌ Operação não permitida: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("\n❌ Erro ao alterar o status: " + e.getMessage());
+            System.out.println("\n❌ Erro inesperado ao alterar o status: " + e.getMessage());
         }
     }
     
@@ -327,7 +395,7 @@ private void removerResponsavel(Delegavel tarefa) {
      * Conduz o fluxo para delegar uma tarefa, seja adicionando, removendo ou trocando responsáveis.
      */
     private void delegarTarefa() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- 🔀 DELEGAR TAREFA ---");
 
         TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
@@ -353,29 +421,7 @@ private void removerResponsavel(Delegavel tarefa) {
         }
     }
 
-    /**
-     * Conduz o fluxo para registrar tempo de trabalho em uma tarefa.
-     */
-    private void registrarTrabalho() {
-        UtilitariosInterface.limparTela();
-        System.out.println("--- ⏱️ REGISTRAR TEMPO DE TRABALHO ---");
 
-        TarefaAbstrata tarefa = buscarTarefaPorIdInterativo();
-        if (tarefa == null) return;
-
-        System.out.println("Digite a duração do trabalho realizado:");
-        Duration duracao = UtilitariosInterface.lerDuracao(scanner);
-
-        try {
-            if (gerenciador.registrarTrabalho(tarefa.getId(), duracao)) {
-                System.out.println("\n✅ Tempo de trabalho registrado com sucesso!");
-            } else {
-                System.out.println("\n❌ Não foi possível registrar o tempo de trabalho.");
-            }
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro ao registrar trabalho: " + e.getMessage());
-        }
-    }
 
     // =================================================================================
     // MÉTODOS AUXILIARES
@@ -392,7 +438,7 @@ private void removerResponsavel(Delegavel tarefa) {
             System.out.println("❌ O ID não pode ser vazio.");
             return null;
         }
-        TarefaAbstrata tarefa = gerenciador.buscarTarefa(id);
+        TarefaAbstrata tarefa = gerenciador.buscarTarefaPorId(id);
         if (tarefa == null) {
             System.out.println("❌ Tarefa com ID '" + id + "' não encontrada.");
         }
@@ -436,4 +482,280 @@ private void removerResponsavel(Delegavel tarefa) {
      * Classe interna para agrupar os dados comuns de uma tarefa.
      */
     private record TarefaDadosComuns(String titulo, String descricao, Prioridade prioridade, LocalDateTime prazo, Categoria categoria) {}
+
+    // =================================================================================
+    // EXECUÇÃO DE TAREFAS TEMPORIZADAS (POMODORO)
+    // =================================================================================
+    
+    /**
+     * Executa uma tarefa temporizada com interface Pomodoro.
+     */
+    private void executarTarefaTemporizada() {
+        System.out.println("--- 🍅 EXECUTAR TAREFA TEMPORIZADA (POMODORO) ---");
+        
+        // Listar tarefas temporizadas disponíveis
+        List<TarefaTemporizada> tarefasTemporizadas = gerenciador.listarTarefasTemporizadas();
+        
+        if (tarefasTemporizadas.isEmpty()) {
+            System.out.println("❌ Nenhuma tarefa temporizada encontrada.");
+            System.out.println("Crie uma tarefa temporizada primeiro.");
+            return;
+        }
+        
+        // Exibir lista de tarefas temporizadas
+        System.out.println("\n📋 Tarefas Temporizadas Disponíveis:");
+        for (int i = 0; i < tarefasTemporizadas.size(); i++) {
+            TarefaTemporizada tarefa = tarefasTemporizadas.get(i);
+            System.out.printf("%d -> %s (Sessões: %d/%d)\n", 
+                i + 1, tarefa.getTitulo(), tarefa.getSessoesCompletadas(), tarefa.getTotalSessoes());
+        }
+        
+        System.out.print("\nEscolha uma tarefa (0 para cancelar): ");
+        int escolha = UtilitariosInterface.lerInteiro(scanner);
+        
+        if (escolha <= 0 || escolha > tarefasTemporizadas.size()) {
+            System.out.println("Operação cancelada.");
+            return;
+        }
+        
+        TarefaTemporizada tarefa = tarefasTemporizadas.get(escolha - 1);
+        executarSessaoPomodoro(tarefa);
+    }
+    
+    /**
+     * Executa uma sessão Pomodoro para uma tarefa específica.
+     */
+    private void executarSessaoPomodoro(TarefaTemporizada tarefa) {
+        System.out.println("\n🍅 EXECUTANDO TAREFA TEMPORIZADA");
+        System.out.println("📝 " + tarefa.getTitulo());
+        System.out.println("🎯 Sessões: " + tarefa.getSessoesCompletadas() + "/" + tarefa.getTotalSessoes());
+        
+        if (tarefa.isCompleta()) {
+            System.out.println("✅ Todas as sessões foram completadas!");
+            return;
+        }
+        
+        if (tarefa.isSessaoAtiva()) {
+            exibirSessaoAtiva(tarefa);
+        } else {
+            iniciarNovaSessao(tarefa);
+        }
+    }
+    
+    /**
+     * Inicia uma nova sessão Pomodoro.
+     */
+    private void iniciarNovaSessao(TarefaTemporizada tarefa) {
+        System.out.println("\n⏰ Próxima sessão: " + tarefa.getProximaSessao() + " de " + tarefa.getTotalSessoes());
+        System.out.println("⏱️ Duração: " + tarefa.getDuracaoSessao().toMinutes() + " minutos");
+        System.out.println("⏸️ Pausa: " + tarefa.getDuracaoPausa().toMinutes() + " minutos");
+        
+        System.out.print("\nPressione ENTER para iniciar a sessão...");
+        scanner.nextLine();
+        
+        try {
+            gerenciador.iniciarSessaoPomodoro(tarefa.getId());
+            exibirSessaoAtiva(tarefa);
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro ao iniciar sessão: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Exibe a sessão ativa com contador e barra de progresso.
+     */
+    private void exibirSessaoAtiva(TarefaTemporizada tarefa) {
+        boolean continuarSessao = true;
+        long ultimaAtualizacao = System.currentTimeMillis();
+        
+        while (tarefa.isSessaoAtiva() && continuarSessao) {
+            long agora = System.currentTimeMillis();
+            
+            // Atualizar tela a cada 2 segundos
+            if (agora - ultimaAtualizacao >= 1000) {
+                // Limpar tela e atualizar display
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+                
+                // Cabeçalho
+                System.out.println("🍅 SESSÃO POMODORO ATIVA");
+                System.out.println("═══════════════════════════════════════════════════════════");
+                System.out.println("📝 Tarefa: " + tarefa.getTitulo());
+                System.out.println("⏱️ Sessão: " + (tarefa.getSessoesCompletadas() + 1) + " de " + tarefa.getTotalSessoes());
+                
+                // Tempo e progresso
+                Duration tempoRestante = tarefa.getTempoRestante();
+                double progresso = tarefa.getProgressoSessao();
+                
+                // Status da sessão
+                String statusSessao = tarefa.isSessaoPausada() ? "⏸️ PAUSADA" : "▶️ ATIVA";
+                System.out.println("Status: " + statusSessao);
+                
+                System.out.printf("⏰ Tempo restante: %02d:%02d\n", 
+                    tempoRestante.toMinutes(), tempoRestante.toSecondsPart());
+                System.out.printf("📊 Progresso: %s %.1f%%\n", 
+                    UtilitariosInterface.criarBarraProgresso(progresso), progresso);
+                
+                // Verificar se a sessão expirou
+                if (tempoRestante.isZero() || tempoRestante.isNegative()) {
+                    System.out.println("\n🔔 SESSÃO EXPIRADA!");
+                    try {
+                        gerenciador.concluirSessaoPomodoro(tarefa.getId());
+                        System.out.println("✅ Sessão automaticamente concluída!");
+                        
+                        if (!tarefa.isCompleta()) {
+                            System.out.println("⏸️ Pausa de " + tarefa.getDuracaoPausa().toMinutes() + " minutos.");
+                            System.out.print("Pressione ENTER para iniciar a próxima sessão...");
+                            scanner.nextLine();
+                            
+                            // Iniciar próxima sessão automaticamente
+                            gerenciador.iniciarSessaoPomodoro(tarefa.getId());
+                            System.out.println("🍅 Próxima sessão iniciada!");
+                            try { Thread.sleep(1000); } catch (InterruptedException ie) {}
+                            ultimaAtualizacao = System.currentTimeMillis();
+                            continue; // Continuar no loop da sessão
+                        } else {
+                            System.out.println("🎉 Todas as sessões foram completadas!");
+                            System.out.println("Pressione ENTER para sair...");
+                            scanner.nextLine();
+                            break; // Sair do loop
+                        }
+                    } catch (Exception e) {
+                        System.out.println("❌ Erro ao concluir sessão: " + e.getMessage());
+                        break;
+                    }
+                }
+                
+                // Menu
+                if (tarefa.isSessaoPausada()) {
+                    System.out.println("\n[1] Retomar Sessão");
+                } else {
+                    System.out.println("\n[1] Pausar Sessão");
+                }
+                System.out.println("[2] Concluir Sessão");
+                System.out.println("[3] Concluir Tarefa");
+                System.out.println("[0] Cancelar");
+                System.out.println("\n💡 Digite um número (0-3) e pressione ENTER:");
+                System.out.print("Opção: ");
+                
+                ultimaAtualizacao = agora;
+            }
+            
+            // Verificar se há input disponível (método mais simples)
+            try {
+                if (System.in.available() > 0) {
+                    String input = scanner.nextLine().trim();
+                    
+                    if (!input.isEmpty()) {
+                        try {
+                            int opcao = Integer.parseInt(input);
+                            if (opcao >= 0 && opcao <= 3) {
+                                continuarSessao = processarOpcaoSessao(tarefa, opcao);
+                                ultimaAtualizacao = 0; // Forçar atualização imediata
+                            } else {
+                                System.out.println("❌ Opção inválida! Digite 0, 1, 2 ou 3.");
+                                System.out.print("Opção: ");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("❌ Digite apenas números! (0-3)");
+                            System.out.print("Opção: ");
+                        }
+                    }
+                } else {
+                    // Pequena pausa para não sobrecarregar CPU
+                    try { Thread.sleep(100); } catch (InterruptedException ie) {}
+                }
+            } catch (Exception e) {
+                // Em caso de erro, continuar com delay
+                try { Thread.sleep(100); } catch (InterruptedException ie) {}
+            }
+        }
+    }
+    
+    /**
+     * Processa as opções do menu da sessão ativa.
+     * @return true para continuar sessão, false para parar
+     */
+    private boolean processarOpcaoSessao(TarefaTemporizada tarefa, int opcao) {
+        try {
+            switch (opcao) {
+                case 1 -> {
+                    if (tarefa.isSessaoPausada()) {
+                        // Retomar sessão
+                        gerenciador.retomarSessaoPomodoro(tarefa.getId());
+                        System.out.println("▶️ Sessão retomada!");
+                        try { Thread.sleep(1500); } catch (InterruptedException ie) {} // Pausa para mostrar mensagem
+                    } else {
+                        // Pausar sessão
+                        gerenciador.pausarSessaoPomodoro(tarefa.getId());
+                        System.out.println("⏸️ Sessão pausada!");
+                        try { Thread.sleep(1500); } catch (InterruptedException ie) {} // Pausa para mostrar mensagem
+                    }
+                    return true; // Continuar na sessão
+                }
+                case 2 -> {
+                    gerenciador.concluirSessaoPomodoro(tarefa.getId());
+                    System.out.println("✅ Sessão concluída!");
+                    
+                    if (tarefa.isCompleta()) {
+                        System.out.println("🎉 Todas as sessões foram completadas!");
+                        System.out.println("Pressione ENTER para sair...");
+                        scanner.nextLine();
+                        return false; // Parar após completar todas as sessões
+                    } else {
+                        System.out.println("⏸️ Pausa de " + tarefa.getDuracaoPausa().toMinutes() + " minutos.");
+                        System.out.print("Deseja iniciar a próxima sessão? (s/N): ");
+                        String resposta = scanner.nextLine().trim().toLowerCase();
+                        
+                        if (resposta.equals("s") || resposta.equals("sim")) {
+                            // Iniciar próxima sessão
+                            gerenciador.iniciarSessaoPomodoro(tarefa.getId());
+                            System.out.println("🍅 Próxima sessão iniciada!");
+                            try { Thread.sleep(1000); } catch (InterruptedException ie) {}
+                            return true; // Continuar para próxima sessão
+                        } else {
+                            System.out.println("Sessão pausada. Você pode continuar depois.");
+                            return false; // Sair da interface de sessão
+                        }
+                    }
+                }
+                case 3 -> {
+                    System.out.print("Tem certeza que deseja concluir toda a tarefa? (s/N): ");
+                    String confirmacao = scanner.nextLine().trim().toLowerCase();
+                    
+                    if (confirmacao.equals("s") || confirmacao.equals("sim")) {
+                        gerenciador.concluirTarefa(tarefa.getId());
+                        System.out.println("✅ Tarefa completamente concluída!");
+                        System.out.println("Pressione ENTER para sair...");
+                        scanner.nextLine();
+                        return false; // Parar a sessão
+                    } else {
+                        System.out.println("Operação cancelada.");
+                        try { Thread.sleep(1000); } catch (InterruptedException ie) {}
+                        return true; // Continuar sessão
+                    }
+                }
+                case 0 -> {
+                    System.out.print("Tem certeza que deseja cancelar a sessão? (s/N): ");
+                    String confirmacao = scanner.nextLine().trim().toLowerCase();
+                    
+                    if (confirmacao.equals("s") || confirmacao.equals("sim")) {
+                        System.out.println("Sessão cancelada.");
+                        return false; // Parar a sessão
+                    } else {
+                        return true; // Continuar sessão
+                    }
+                }
+                default -> {
+                    System.out.println("❌ Opção inválida. Tente novamente.");
+                    try { Thread.sleep(1000); } catch (InterruptedException ie) {}
+                    return true; // Continuar sessão
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("\n❌ Erro: " + e.getMessage());
+            try { Thread.sleep(2000); } catch (InterruptedException ie) {}
+            return true; // Continuar em caso de erro
+        }
+    }
 }

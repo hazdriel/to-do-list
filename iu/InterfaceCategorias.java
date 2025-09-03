@@ -29,7 +29,7 @@ public final class InterfaceCategorias {
     public void exibirMenuCategorias() {
         boolean executando = true;
         while (executando) {
-            UtilitariosInterface.limparTela();
+            
             System.out.println("--- 📂 GERENCIAR CATEGORIAS ---");
             System.out.println("1 -> Ver Categorias Existentes");
             System.out.println("2 -> Criar Nova Categoria");
@@ -60,7 +60,7 @@ public final class InterfaceCategorias {
      * Busca e exibe todas as categorias associadas ao utilizador.
      */
     private void exibirCategoriasExistentes() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- CATEGORIAS EXISTENTES ---");
         
         List<Categoria> categorias = gerenciador.listarCategorias();
@@ -96,7 +96,7 @@ public final class InterfaceCategorias {
      * Conduz o processo de criação de uma nova categoria personalizada.
      */
     private void criarNovaCategoria() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- CRIAR NOVA CATEGORIA ---");
         
         String nome = UtilitariosInterface.lerString(scanner, "Digite o nome da nova categoria: ");
@@ -120,7 +120,7 @@ public final class InterfaceCategorias {
      * Conduz o processo de remoção de uma categoria personalizada.
      */
     private void removerCategoria() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- REMOVER CATEGORIA ---");
         
         // Filtra apenas as categorias que o utilizador atual pode remover.
@@ -156,13 +156,14 @@ public final class InterfaceCategorias {
             // Lógica de confirmação mais segura: apenas "s" ou "sim" confirmam.
             if (List.of("s", "sim").contains(confirmacao)) {
                 try {
-                    if (gerenciador.removerCategoria(categoriaParaRemover.getNome())) {
-                        System.out.println("\n✅ Categoria removida com sucesso!");
-                    } else {
-                        System.out.println("\n❌ Erro: Não foi possível remover a categoria.");
-                    }
+                    gerenciador.removerCategoria(categoriaParaRemover.getNome());
+                    System.out.println("\n✅ Categoria removida com sucesso!");
+                } catch (IllegalArgumentException e) {
+                    System.out.println("\n❌ Erro de validação: " + e.getMessage());
+                } catch (IllegalStateException e) {
+                    System.out.println("\n❌ Operação não permitida: " + e.getMessage());
                 } catch (Exception e) {
-                    System.out.println("\n❌ Erro ao remover categoria: " + e.getMessage());
+                    System.out.println("\n❌ Erro inesperado ao remover categoria: " + e.getMessage());
                 }
             } else {
                 System.out.println("\nOperação cancelada.");

@@ -19,6 +19,7 @@ import java.util.Scanner;
 public final class UtilitariosInterface {
 
     private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
+    private static final DateTimeFormatter FORMATO_DATA_HORA_ENTRADA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     /**
@@ -43,7 +44,6 @@ public final class UtilitariosInterface {
             System.out.print("➡️ ");
             if (scanner.hasNextInt()) {
                 int numero = scanner.nextInt();
-                scanner.nextLine(); // << PONTO CRÍTICO: Consome o '\n' deixado pelo nextInt().
                 return numero;
             } else {
                 System.out.println("❌ Entrada inválida. Por favor, digite apenas um número inteiro.");
@@ -90,7 +90,7 @@ public final class UtilitariosInterface {
             System.out.print("Digite a data e hora (dd/MM/yyyy HH:mm): ");
             String entrada = scanner.nextLine().trim();
             try {
-                return LocalDateTime.parse(entrada, FORMATO_DATA_HORA);
+                return LocalDateTime.parse(entrada, FORMATO_DATA_HORA_ENTRADA);
             } catch (DateTimeParseException e) {
                 System.out.println("❌ Formato de data e hora inválido. Tente novamente.");
             }
@@ -103,21 +103,14 @@ public final class UtilitariosInterface {
     // MÉTODOS DE EXPERIÊNCIA DO UTILIZADOR (UX)
     // =================================================================================
     
-    /**
-     * Limpa a tela do console imprimindo várias linhas em branco.
-     */
-    public static void limparTela() {
-        for (int i = 0; i < 50; i++) {
-            System.out.println();
-        }
-    }
+
 
     /**
      * Pausa a execução e aguarda o utilizador pressionar Enter para continuar.
      * @param scanner A instância do Scanner a ser usada.
      */
     public static void pressioneEnterParaContinuar(Scanner scanner) {
-        System.out.print("\n_Pressione ENTER para continuar..._");
+        System.out.print("\n\nPressione enter para continuar...");
         scanner.nextLine();
     }
 
@@ -131,7 +124,7 @@ public final class UtilitariosInterface {
      * @param titulo O título a ser mostrado.
      */
     public static void exibirTarefas(List<TarefaAbstrata> tarefas, String titulo) {
-        limparTela();
+        
         System.out.println("\n--- " + titulo.toUpperCase() + " ---");
         if (tarefas == null || tarefas.isEmpty()) {
             System.out.println("\n📭 Nenhuma tarefa encontrada nesta categoria.");
@@ -159,7 +152,7 @@ public final class UtilitariosInterface {
      * @param tarefa A tarefa a ser detalhada.
      */
     public static void exibirTarefaDetalhada(TarefaAbstrata tarefa) {
-        limparTela();
+        
         System.out.println("--- DETALHES DA TAREFA ---");
         System.out.printf("ID:          %s\n", tarefa.getId());
         System.out.printf("Título:      %s\n", tarefa.getTitulo());
@@ -244,6 +237,48 @@ public static Duration lerDuracao(Scanner scanner) {
                 System.out.println("❌ Entrada inválida. Por favor, digite apenas o número de horas.");
             }
         }
+    }
+
+    /**
+     * Lê uma duração em minutos do utilizador.
+     * @param scanner A instância do Scanner a ser usada.
+     * @param prompt A mensagem a ser exibida.
+     * @param valorPadrao O valor padrão em minutos.
+     * @param minMinutos Valor mínimo permitido.
+     * @param maxMinutos Valor máximo permitido.
+     * @return A Duration lida.
+     */
+    public static Duration lerDuracaoMinutos(Scanner scanner, String prompt, int valorPadrao, int minMinutos, int maxMinutos) {
+        while (true) {
+            System.out.print(prompt);
+            String entrada = scanner.nextLine().trim();
+            
+            if (entrada.isEmpty()) {
+                return Duration.ofMinutes(valorPadrao);
+            }
+            
+            try {
+                int minutos = Integer.parseInt(entrada);
+                if (minutos >= minMinutos && minutos <= maxMinutos) {
+                    return Duration.ofMinutes(minutos);
+                } else {
+                    System.out.printf("❌ Duração deve ser entre %d e %d minutos.\n", minMinutos, maxMinutos);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Digite um número válido.");
+            }
+        }
+    }
+
+    /**
+     * Cria uma barra de progresso visual baseada em uma porcentagem.
+     * @param progresso Porcentagem de progresso (0.0 a 100.0).
+     * @return String representando a barra de progresso.
+     */
+    public static String criarBarraProgresso(double progresso) {
+        int barras = (int) (progresso / 5); // 20 barras = 100%
+        barras = Math.min(20, Math.max(0, barras)); // Garante entre 0 e 20
+        return "█".repeat(barras) + "░".repeat(20 - barras);
     }
 
 }

@@ -33,7 +33,6 @@ public class InterfaceVisualizacao {
         System.out.print("Opção: ");
 
         int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine(); 
 
         switch (opcao) {
             case 1 -> exibirTarefas(gerenciador.listarTarefas(), "TODAS AS TAREFAS");
@@ -72,7 +71,6 @@ public class InterfaceVisualizacao {
         System.out.print("Opção: ");
         
         int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
         
         Status status = switch (opcao) {
             case 1 -> Status.PENDENTE;
@@ -109,7 +107,6 @@ public class InterfaceVisualizacao {
         System.out.print("Opção: ");
         
         int opcao = UtilitariosInterface.lerInteiro(scanner);
-        scanner.nextLine();
         
         String tipo = switch (opcao) {
             case 1 -> "Simples";
@@ -333,7 +330,7 @@ public class InterfaceVisualizacao {
         System.out.println("\n--- BUSCAR TAREFA POR ID ---");
         String id = UtilitariosInterface.lerString(scanner, "ID da tarefa: ");
         
-        TarefaAbstrata tarefa = gerenciador.buscarTarefa(id);
+        TarefaAbstrata tarefa = gerenciador.buscarTarefaPorId(id);
         
         if (tarefa != null) {
             UtilitariosInterface.exibirTarefaDetalhada(tarefa);

@@ -4,6 +4,8 @@ import fachada.Gerenciador;
 import iu.relatorio.FormatadorRelatorio;
 import negocio.DadosEstatisticos;
 import negocio.DadosEstatisticos.TarefasAtencao;
+import negocio.relatorio.ExportadorPDF;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Scanner;
@@ -19,6 +21,7 @@ public final class InterfaceRelatorios {
     private final Scanner scanner;
     private final Gerenciador gerenciador;
     private final FormatadorRelatorio formatador;
+    private ExportadorPDF exportadorPDF;
     
     /**
      * Construtor que recebe as dependências necessárias.
@@ -29,6 +32,7 @@ public final class InterfaceRelatorios {
         this.scanner = scanner;
         this.gerenciador = gerenciador;
         this.formatador = new FormatadorRelatorio(); // O formatador é específico deste módulo.
+        this.exportadorPDF = new ExportadorPDF();
     }
     
     /**
@@ -38,11 +42,12 @@ public final class InterfaceRelatorios {
     public void exibirMenuRelatorios() {
         boolean executando = true;
         while (executando) {
-            UtilitariosInterface.limparTela();
+            
             System.out.println("--- 📊 RELATÓRIOS E ESTATÍSTICAS ---");
             System.out.println("1 -> Relatório de Produtividade (Últimos 30 dias)");
             System.out.println("2 -> Relatório de Status das Tarefas");
             System.out.println("3 -> Relatório de Produtividade por Período");
+            System.out.println("4 -> Exportar Relatório para PDF");
             System.out.println("0 -> Voltar ao Menu Principal");
             System.out.print("Escolha uma opção: ");
             
@@ -52,6 +57,7 @@ public final class InterfaceRelatorios {
                 case 1 -> exibirRelatorioProdutividade();
                 case 2 -> exibirRelatorioStatus();
                 case 3 -> exibirRelatorioTemporal();
+                case 4 -> exportarRelatorioPDF();
                 case 0 -> {
                     System.out.println("\nVoltando ao menu principal...");
                     executando = false;
@@ -69,7 +75,7 @@ public final class InterfaceRelatorios {
      * Gera e exibe o relatório de produtividade dos últimos 30 dias.
      */
     private void exibirRelatorioProdutividade() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- RELATÓRIO DE PRODUTIVIDADE ---");
         
         LocalDateTime dataFim = LocalDateTime.now();
@@ -85,7 +91,7 @@ public final class InterfaceRelatorios {
      * Gera e exibe um relatório sobre o status geral das tarefas.
      */
     private void exibirRelatorioStatus() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- RELATÓRIO DE STATUS ---");
         
         LocalDateTime dataFim = LocalDateTime.now();
@@ -102,7 +108,7 @@ public final class InterfaceRelatorios {
      * Gera e exibe um relatório de produtividade para um período de dias personalizado.
      */
     private void exibirRelatorioTemporal() {
-        UtilitariosInterface.limparTela();
+        
         System.out.println("--- RELATÓRIO DE PRODUTIVIDADE POR PERÍODO ---");
         
         int dias = lerPeriodoDeDias(); // Lógica de leitura extraída para um método auxiliar.
@@ -158,5 +164,64 @@ public final class InterfaceRelatorios {
         System.out.printf("  - Tarefas concluídas: %d\n", concluidas);
         System.out.printf("  - Tarefas pendentes:  %d\n", pendentes);
         System.out.printf("  - Tarefas atrasadas:  %d\n", atrasadas);
+    }
+
+    private void exportarRelatorioPDF() {
+        System.out.println("\n--- 📄 EXPORTAR RELATÓRIO PARA PDF ---");
+        System.out.println("1 -> 📊 Relatório de Produtividade");
+        System.out.println("2 -> 📝 Lista de Todas as Tarefas");
+        System.out.println("3 -> 🎯 Relatório Completo");
+        System.out.println("0 -> Voltar");
+        System.out.print("Opção: ");
+        
+        int opcao = UtilitariosInterface.lerInteiro(scanner);
+        scanner.nextLine();
+        
+        try {
+            String caminhoArquivo = null;
+            
+            switch (opcao) {
+                case 1 -> {
+                    LocalDateTime dataFim = LocalDateTime.now();
+                    LocalDateTime dataInicio = dataFim.minusDays(30);
+                    DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
+                    caminhoArquivo = exportadorPDF.exportarRelatorioProdutividade(dados);
+                    System.out.println("✅ Relatório de produtividade exportado!");
+                }
+                case 2 -> {
+                    caminhoArquivo = exportadorPDF.exportarRelatorioTarefas(
+                        gerenciador.listarTarefas(), 
+                        gerenciador.getUsuarioLogado(),
+                        "RELATÓRIO DE TODAS AS TAREFAS"
+                    );
+                    System.out.println("✅ Lista de tarefas exportada!");
+                }
+                case 3 -> {
+                    LocalDateTime dataFim = LocalDateTime.now();
+                    LocalDateTime dataInicio = dataFim.minusDays(30);
+                    DadosEstatisticos dados = gerenciador.obterEstatisticasProdutividade(dataInicio, dataFim);
+                    caminhoArquivo = exportadorPDF.exportarRelatorioCompleto(dados, gerenciador.listarTarefas());
+                    System.out.println("✅ Relatório completo exportado!");
+                }
+                case 0 -> {
+                    System.out.println("Voltando...");
+                    return;
+                }
+                default -> {
+                    System.out.println("Opção inválida.");
+                    return;
+                }
+            }
+            
+            if (caminhoArquivo != null) {
+                System.out.println("📁 Arquivo salvo em: " + caminhoArquivo);
+            }
+            
+        } catch (Exception e) {
+            System.out.println("❌ Erro ao exportar relatório: " + e.getMessage());
+        }
+        
+        System.out.println("Pressione Enter para continuar...");
+        scanner.nextLine();
     }
 }
