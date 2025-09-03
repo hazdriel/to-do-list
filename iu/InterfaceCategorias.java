@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-/**
- * Módulo da interface de usuário dedicado ao gerenciamento de categorias.
- * Permite ao utilizador visualizar, criar e remover as suas categorias personalizadas.
- */
 public final class InterfaceCategorias {
     
     private final Scanner scanner;
@@ -22,10 +18,7 @@ public final class InterfaceCategorias {
         this.gerenciador = gerenciador;
     }
     
-    /**
-     * Exibe o menu de gerenciamento de categorias e o mantém em um loop
-     * até que o utilizador decida voltar.
-     */
+
     public void exibirMenuCategorias() {
         boolean executando = true;
         while (executando) {
@@ -49,16 +42,13 @@ public final class InterfaceCategorias {
                 }
                 default -> System.out.println("❌ Opção inválida.");
             }
-            // Pausa a tela após cada ação (exceto ao sair)
             if (executando) {
                 UtilitariosInterface.pressioneEnterParaContinuar(scanner);
             }
         }
     }
     
-    /**
-     * Busca e exibe todas as categorias associadas ao utilizador.
-     */
+
     private void exibirCategoriasExistentes() {
         UtilitariosInterface.limparTela();
         System.out.println("--- CATEGORIAS EXISTENTES ---");
@@ -78,10 +68,6 @@ public final class InterfaceCategorias {
         System.out.printf("\nTotal: %d categoria(s) encontradas.\n", categorias.size());
     }
     
-    /**
-     * Formata e exibe os detalhes de uma única categoria.
-     * @param categoria A categoria a ser exibida.
-     */
     private void exibirDetalhesCategoria(Categoria categoria) {
         System.out.printf("Nome: %s\n", categoria.getNome());
         if (categoria.isPadrao()) {
@@ -92,9 +78,7 @@ public final class InterfaceCategorias {
         }
     }
     
-    /**
-     * Conduz o processo de criação de uma nova categoria personalizada.
-     */
+
     private void criarNovaCategoria() {
         UtilitariosInterface.limparTela();
         System.out.println("--- CRIAR NOVA CATEGORIA ---");
@@ -106,8 +90,6 @@ public final class InterfaceCategorias {
             return;
         }
         
-        // A lógica de verificação de nome duplicado deve idealmente estar na fachada/negócio.
-        // A interface apenas reage ao resultado.
         try {
             Categoria novaCategoria = gerenciador.criarCategoria(nome);
             System.out.println("\n✅ Categoria '" + novaCategoria.getNome() + "' criada com sucesso!");
@@ -116,21 +98,16 @@ public final class InterfaceCategorias {
         }
     }
     
-    /**
-     * Conduz o processo de remoção de uma categoria personalizada.
-     */
     private void removerCategoria() {
         UtilitariosInterface.limparTela();
         System.out.println("--- REMOVER CATEGORIA ---");
-        
-        // Filtra apenas as categorias que o utilizador atual pode remover.
         Usuario utilizadorAtual = gerenciador.getUsuarioLogado();
         List<Categoria> categoriasRemoviveis = gerenciador.listarCategorias().stream()
                 .filter(c -> !c.isPadrao() && c.foiCriadaPor(utilizadorAtual))
                 .collect(Collectors.toList());
         
         if (categoriasRemoviveis.isEmpty()) {
-            System.out.println("\n📭 Nenhuma categoria criada por si para remover.");
+            System.out.println("\n📭 Nenhuma categoria criada para remover.");
             return;
         }
         
@@ -152,8 +129,6 @@ public final class InterfaceCategorias {
             
             String prompt = String.format("Tem a certeza que deseja remover a categoria '%s'? (s/N): ", categoriaParaRemover.getNome());
             String confirmacao = UtilitariosInterface.lerString(scanner, prompt).toLowerCase();
-            
-            // Lógica de confirmação mais segura: apenas "s" ou "sim" confirmam.
             if (List.of("s", "sim").contains(confirmacao)) {
                 try {
                     if (gerenciador.removerCategoria(categoriaParaRemover.getNome())) {

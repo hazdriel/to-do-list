@@ -9,10 +9,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Módulo da UI dedicado a todas as operações de gerenciamento de tarefas,
- * como criação, atualização, remoção e alteração de status.
- */
 public final class InterfaceTarefas {
     private final Scanner scanner;
     private final Gerenciador gerenciador;
@@ -22,9 +18,6 @@ public final class InterfaceTarefas {
         this.gerenciador = gerenciador;
     }
 
-    /**
-     * Exibe o menu principal de gerenciamento de tarefas em um loop interativo.
-     */
     public void exibirMenuTarefas() {
     boolean executando = true;
     while (executando) {
@@ -42,7 +35,7 @@ public final class InterfaceTarefas {
         int opcao = UtilitariosInterface.lerInteiro(scanner);
         
         switch (opcao) {
-            case 1 -> exibirMenuCriacaoTarefa(); // Leva ao submenu de criação
+            case 1 -> exibirMenuCriacaoTarefa();
             case 2 -> atualizarTarefa();
             case 3 -> gerenciarStatusTarefa();
             case 4 -> delegarTarefa();
@@ -59,9 +52,6 @@ public final class InterfaceTarefas {
     System.out.println("\nVoltando ao menu principal...");
 }
 
-/**
- * Exibe um submenu para a criação de diferentes tipos de tarefas.
- */
 private void exibirMenuCriacaoTarefa() {
     UtilitariosInterface.limparTela();
     System.out.println("--- TIPO DE TAREFA A SER CRIADA ---");
@@ -83,16 +73,6 @@ private void exibirMenuCriacaoTarefa() {
         default -> System.out.println("❌ Opção inválida.");
     }
 }
-
-    // =================================================================================
-    // MÉTODOS DE CRIAÇÃO DE TAREFAS (Refatorados com Helper/Ajudantes)
-    // =================================================================================
-
-    /**
-     * Método auxiliar que coleta os dados comuns a todos os tipos de tarefas.
-     * Evita a repetição de código nos métodos de criação.
-     * @return Um objeto {@code TarefaDadosComuns} contendo os dados lidos.
-     */
     private TarefaDadosComuns coletarDadosComunsTarefa() {
         String titulo = UtilitariosInterface.lerString(scanner, "Título: ");
         String descricao = UtilitariosInterface.lerString(scanner, "Descrição: ");
@@ -121,7 +101,7 @@ private void exibirMenuCriacaoTarefa() {
         
         System.out.println("\nSelecione o responsável pela tarefa:");
         Usuario responsavel = selecionarUsuario();
-        if (responsavel == null) return; // Operação cancelada
+        if (responsavel == null) return;
         
         try {
             gerenciador.criarTarefaDelegavel(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel);
@@ -159,33 +139,22 @@ private void exibirMenuCriacaoTarefa() {
         }
     }
 
-/**
- * Método auxiliar para conduzir o fluxo de adição de um novo responsável a uma tarefa delegável.
- * @param tarefa A tarefa delegável que será modificada.
- */
 private void adicionarResponsavel(Delegavel tarefa) {
-    System.out.println("\nSelecione o utilizador para adicionar como responsável:");
+    System.out.println("\nSelecione o usuario para adicionar como responsável:");
     Usuario novoResponsavel = selecionarUsuario();
     if (novoResponsavel == null) {
-        System.out.println("Nenhum utilizador selecionado. Operação cancelada.");
-        return; // Retorna se a seleção foi cancelada
+        System.out.println("Nenhum usuario selecionado. Operação cancelada.");
+        return;
     }
-
-    // Talvez O ideal seria chamar gerenciador.adicionarResponsavel(...).
-    // vou manter a modificação direta + salvar aqui para simplicidade. !!!!!!!!!!!!!!!!!!!!!!!!
     try {
         tarefa.adicionarResponsavel(novoResponsavel);
-        gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
+        gerenciador.salvarTarefa((TarefaAbstrata) tarefa); 
         System.out.printf("\n✅ %s foi adicionado(a) como responsável.\n", novoResponsavel.getNome());
     } catch (Exception e) {
         System.out.println("\n❌ Erro ao adicionar responsável: " + e.getMessage());
     }
 }
 
-/**
- * Método auxiliar para conduzir o fluxo de remoção de um responsável de uma tarefa delegável.
- * @param tarefa A tarefa delegável que será modificada.
- */
 private void removerResponsavel(Delegavel tarefa) {
     List<Usuario> responsaveisAtuais = tarefa.getResponsaveis();
     if (responsaveisAtuais.isEmpty()) {
@@ -205,7 +174,7 @@ private void removerResponsavel(Delegavel tarefa) {
         Usuario responsavelParaRemover = responsaveisAtuais.get(escolha - 1);
         try {
             tarefa.removerResponsavel(responsavelParaRemover);
-            gerenciador.salvarTarefa((TarefaAbstrata) tarefa); // Salva o estado modificado
+            gerenciador.salvarTarefa((TarefaAbstrata) tarefa);
             System.out.printf("\n✅ %s foi removido(a) como responsável.\n", responsavelParaRemover.getNome());
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao remover responsável: " + e.getMessage());
@@ -214,10 +183,6 @@ private void removerResponsavel(Delegavel tarefa) {
         System.out.println("\nOperação cancelada ou opção inválida.");
     }
 }
-
-    // =================================================================================
-    // MÉTODOS DE ATUALIZAÇÃO E REMOÇÃO
-    // =================================================================================
 
     private void atualizarTarefa() {
         UtilitariosInterface.limparTela();
@@ -282,10 +247,6 @@ private void removerResponsavel(Delegavel tarefa) {
         }
     }
 
-    // =================================================================================
-    // SUBMENU DE STATUS E DELEGAÇÃO
-    // =================================================================================
-
     private void gerenciarStatusTarefa() {
         UtilitariosInterface.limparTela();
         System.out.println("--- ALTERAR STATUS DA TAREFA ---");
@@ -322,10 +283,6 @@ private void removerResponsavel(Delegavel tarefa) {
         }
     }
     
-
-    /**
-     * Conduz o fluxo para delegar uma tarefa, seja adicionando, removendo ou trocando responsáveis.
-     */
     private void delegarTarefa() {
         UtilitariosInterface.limparTela();
         System.out.println("--- 🔀 DELEGAR TAREFA ---");
@@ -353,9 +310,6 @@ private void removerResponsavel(Delegavel tarefa) {
         }
     }
 
-    /**
-     * Conduz o fluxo para registrar tempo de trabalho em uma tarefa.
-     */
     private void registrarTrabalho() {
         UtilitariosInterface.limparTela();
         System.out.println("--- ⏱️ REGISTRAR TEMPO DE TRABALHO ---");
@@ -376,16 +330,6 @@ private void removerResponsavel(Delegavel tarefa) {
             System.out.println("\n❌ Erro ao registrar trabalho: " + e.getMessage());
         }
     }
-
-    // =================================================================================
-    // MÉTODOS AUXILIARES
-    // =================================================================================
-    
-    /**
-     * Pede ao utilizador um ID e busca a tarefa correspondente.
-     * Centraliza a lógica de busca e tratamento de erro "não encontrado".
-     * @return A {@code TarefaAbstrata} encontrada, ou {@code null} se não for encontrada ou a operação for cancelada.
-     */
     private TarefaAbstrata buscarTarefaPorIdInterativo() {
         String id = UtilitariosInterface.lerString(scanner, "Digite o ID da tarefa: ");
         if (id.isEmpty()) {
@@ -414,7 +358,7 @@ private void removerResponsavel(Delegavel tarefa) {
         if (escolha > 0 && escolha <= categorias.size()) {
             return categorias.get(escolha - 1);
         }
-        System.out.println("❌ Opção inválida. A usar a primeira categoria da lista.");
+        System.out.println("❌ Opção inválida. Usando a primeira categoria da lista.");
         return categorias.get(0);
     }
     
@@ -423,7 +367,7 @@ private void removerResponsavel(Delegavel tarefa) {
         for (int i = 0; i < usuarios.size(); i++) {
             System.out.printf("%d -> %s (%s)\n", (i + 1), usuarios.get(i).getNome(), usuarios.get(i).getEmail());
         }
-        System.out.print("Escolha um utilizador: ");
+        System.out.print("Escolha um usuario: ");
         int escolha = UtilitariosInterface.lerInteiro(scanner);
         if (escolha > 0 && escolha <= usuarios.size()) {
             return usuarios.get(escolha - 1);
@@ -432,8 +376,5 @@ private void removerResponsavel(Delegavel tarefa) {
         return null;
     }
     
-    /**
-     * Classe interna para agrupar os dados comuns de uma tarefa.
-     */
     private record TarefaDadosComuns(String titulo, String descricao, Prioridade prioridade, LocalDateTime prazo, Categoria categoria) {}
 }

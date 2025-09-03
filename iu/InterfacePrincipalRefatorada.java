@@ -82,35 +82,28 @@ public final class InterfacePrincipalRefatorada {
         processarOpcaoDoMenuPrincipal(opcao);
     }
 
-    /**
-     * Exibe o cabeçalho padronizado do menu principal, com as informações do utilizador.
-     */
     private void exibirCabecalhoDoMenu() {
         System.out.println("=".repeat(50));
         System.out.println("              🎯 MENU PRINCIPAL 🎯");
         System.out.println("=".repeat(50));
         Usuario usuarioLogado = gerenciador.getUsuarioLogado();
-        System.out.printf("👤 Utilizador: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
+        System.out.printf("👤 Usuario: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
         System.out.println("-".repeat(50));
     }
 
-    /**
-     * Processa a opção escolhida pelo utilizador no menu principal.
-     * @param opcao O número da opção escolhida.
-     */
+    
     private void processarOpcaoDoMenuPrincipal(int opcao) {
         switch (opcao) {
             case 1 -> interfaceTarefas.exibirMenuTarefas();
-            case 2 -> interfaceVisualizacao.exibirMenuVisualizacao(); // Nome do método ajustado
+            case 2 -> interfaceVisualizacao.exibirMenuVisualizacao();
             case 3 -> interfaceCategorias.exibirMenuCategorias();
             case 4 -> interfaceRelatorios.exibirMenuRelatorios();
             case 5 -> exibirPerfilUsuario();
             case 6 -> {
                 interfaceAutenticacao.realizarLogout();
-                // A flag 'executando' continua true, o loop principal irá para a tela de login.
             }
             case 0 -> {
-                System.out.println("\nA sair do sistema...");
+                System.out.println("\nSaindo do sistema...");
                 executando = false;
             }
             default -> {
@@ -120,25 +113,20 @@ public final class InterfacePrincipalRefatorada {
         }
     }
     
-    /**
-     * Exibe as informações de perfil do utilizador logado.
-     */
+    
     private void exibirPerfilUsuario() {
         Usuario usuario = gerenciador.getUsuarioLogado();
         
         UtilitariosInterface.limparTela();
         System.out.println("=".repeat(40));
-        System.out.println("           👤 PERFIL DO UTILIZADOR 👤");
+        System.out.println("           👤 PERFIL DO USUARIO 👤");
         System.out.println("=".repeat(40));
         
         System.out.printf("ID:    %s\n", usuario.getId());
         System.out.printf("Nome:  %s\n", usuario.getNome());
         System.out.printf("Email: %s\n", usuario.getEmail());
-        
-        // Delega a exibição das estatísticas para o módulo de relatórios,
-        // mantendo a responsabilidade de cada classe bem definida.
         System.out.println("\n--- Estatísticas Resumidas ---");
-        interfaceRelatorios.exibirEstatisticasResumidas(); // Assumindo que este método existe.
+        interfaceRelatorios.exibirEstatisticasResumidas();
         
         System.out.println("\n" + "=".repeat(40));
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);

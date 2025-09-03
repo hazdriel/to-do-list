@@ -5,7 +5,6 @@ import negocio.entidade.*;
 import java.util.List;
 import java.util.Scanner;
 
-// Interface para visualização de tarefas
 public class InterfaceVisualizacao {
     
     private final Scanner scanner;
@@ -16,7 +15,6 @@ public class InterfaceVisualizacao {
         this.gerenciador = gerenciador;
     }
     
-    // Menu de visualização
     public void exibirMenuVisualizacao() {
         System.out.println("\n------ VISUALIZAR TAREFAS ------");
         System.out.println("1 -> Todas as Tarefas");
@@ -159,8 +157,7 @@ public class InterfaceVisualizacao {
         System.out.println("\n--- MINHAS TAREFAS (RESPONSABILIDADES) ---");
         
         try {
-            // Buscar tarefas onde o usuário é responsável (incluindo criadas por ele)
-            List<TarefaAbstrata> minhasTarefas = gerenciador.listarTarefasDoUsuario();
+                        List<TarefaAbstrata> minhasTarefas = gerenciador.listarTarefasDoUsuario();
             
             if (minhasTarefas.isEmpty()) {
                 System.out.println("📭 Você não tem responsabilidades em nenhuma tarefa delegável.");
@@ -180,8 +177,6 @@ public class InterfaceVisualizacao {
                 System.out.println("📅 Prazo: " + UtilitariosInterface.formatarDataHora(tarefa.getPrazo()));
                 System.out.println("📊 Status: " + tarefa.getStatus());
                 System.out.println("👤 Criador: " + tarefa.getCriador().getNome() + " (" + tarefa.getCriador().getEmail() + ")");
-                
-                // Mostrar informações específicas de tarefas delegáveis
                 if (tarefa instanceof Delegavel) {
                     Delegavel delegavel = (Delegavel) tarefa;
                     List<Usuario> responsaveis = delegavel.getResponsaveis();
@@ -212,7 +207,6 @@ public class InterfaceVisualizacao {
         System.out.println("\n--- TAREFAS DELEGADAS POR MIM ---");
         
         try {
-            // Buscar tarefas criadas pelo usuário que foram delegadas (múltiplos responsáveis)
             List<TarefaAbstrata> tarefasDelegadas = gerenciador.listarTarefasDelegadasPeloUsuario();
             
             if (tarefasDelegadas.isEmpty()) {
@@ -232,8 +226,7 @@ public class InterfaceVisualizacao {
                 System.out.println("🎯 Prioridade: " + tarefa.getPrioridade());
                 System.out.println("📅 Prazo: " + UtilitariosInterface.formatarDataHora(tarefa.getPrazo()));
                 System.out.println("📊 Status: " + tarefa.getStatus());
-                
-                // Mostrar informações específicas de tarefas delegáveis
+
                 if (tarefa instanceof Delegavel) {
                     Delegavel delegavel = (Delegavel) tarefa;
                     List<Usuario> responsaveis = delegavel.getResponsaveis();
@@ -246,7 +239,6 @@ public class InterfaceVisualizacao {
                     
                     System.out.println("📚 Histórico de delegações: " + delegavel.getHistoricoDelegacoes().size());
                     
-                    // Mostrar histórico detalhado
                     if (!delegavel.getHistoricoDelegacoes().isEmpty()) {
                         System.out.println("📖 Últimas delegações:");
                         for (RegistroDelegacao registro : delegavel.getHistoricoDelegacoes()) {
@@ -272,7 +264,6 @@ public class InterfaceVisualizacao {
         System.out.println("\n--- TAREFAS DELEGADAS PARA MIM ---");
         
         try {
-            // Buscar tarefas onde o usuário atual é responsável mas não é o criador
             List<TarefaAbstrata> tarefasDelegadas = gerenciador.listarTarefasDelegadasParaUsuario();
             
             if (tarefasDelegadas.isEmpty()) {
@@ -293,8 +284,7 @@ public class InterfaceVisualizacao {
                 System.out.println("📅 Prazo: " + UtilitariosInterface.formatarDataHora(tarefa.getPrazo()));
                 System.out.println("📊 Status: " + tarefa.getStatus());
                 System.out.println("👤 Criador: " + tarefa.getCriador().getNome() + " (" + tarefa.getCriador().getEmail() + ")");
-                
-                // Mostrar informações específicas de tarefas delegáveis
+            
                 if (tarefa instanceof Delegavel) {
                     Delegavel delegavel = (Delegavel) tarefa;
                     List<Usuario> responsaveis = delegavel.getResponsaveis();
@@ -307,7 +297,6 @@ public class InterfaceVisualizacao {
                     
                     System.out.println("📚 Histórico de delegações: " + delegavel.getHistoricoDelegacoes().size());
                     
-                    // Mostrar histórico detalhado
                     if (!delegavel.getHistoricoDelegacoes().isEmpty()) {
                         System.out.println("📖 Últimas delegações:");
                         for (RegistroDelegacao registro : delegavel.getHistoricoDelegacoes()) {
@@ -351,7 +340,6 @@ public class InterfaceVisualizacao {
             return;
         }
         
-        // Estatísticas básicas
         long totalTarefas = todasTarefas.size();
         long tarefasConcluidas = todasTarefas.stream()
             .filter(t -> t.getStatus() == Status.CONCLUIDA)
@@ -366,7 +354,6 @@ public class InterfaceVisualizacao {
             .filter(TarefaAbstrata::estaAtrasada)
             .count();
         
-        // Estatísticas por prioridade
         long tarefasAlta = todasTarefas.stream()
             .filter(t -> t.getPrioridade() == Prioridade.ALTA)
             .count();
@@ -377,7 +364,6 @@ public class InterfaceVisualizacao {
             .filter(t -> t.getPrioridade() == Prioridade.BAIXA)
             .count();
         
-        // Exibir estatísticas
         System.out.println("📊 ESTATÍSTICAS GERAIS:");
         System.out.println("   Total de tarefas: " + totalTarefas);
         System.out.println("   Tarefas concluídas: " + tarefasConcluidas + " (" + calcularPorcentagem(tarefasConcluidas, totalTarefas) + "%)");
@@ -390,7 +376,6 @@ public class InterfaceVisualizacao {
         System.out.println("   Média: " + tarefasMedia + " (" + calcularPorcentagem(tarefasMedia, totalTarefas) + "%)");
         System.out.println("   Baixa: " + tarefasBaixa + " (" + calcularPorcentagem(tarefasBaixa, totalTarefas) + "%)");
         
-        // Estatísticas por tipo
         long tarefasSimples = todasTarefas.stream()
             .filter(t -> "Simples".equals(t.getTipo()))
             .count();
@@ -410,24 +395,13 @@ public class InterfaceVisualizacao {
         System.out.println("   Recorrentes: " + tarefasRecorrentes + " (" + calcularPorcentagem(tarefasRecorrentes, totalTarefas) + "%)");
         System.out.println("   Temporizadas: " + tarefasTemporizadas + " (" + calcularPorcentagem(tarefasTemporizadas, totalTarefas) + "%)");
     }
-    
-    /**
-     * Calcula a porcentagem de um valor em relação ao total.
-     * @param valor Valor para calcular a porcentagem
-     * @param total Valor total
-     * @return Porcentagem formatada
-     */
+
     private String calcularPorcentagem(long valor, long total) {
         if (total == 0) return "0.0";
         double porcentagem = (double) valor / total * 100;
         return String.format("%.1f", porcentagem);
     }
     
-    /**
-     * Exibe uma lista de tarefas usando os utilitários comuns.
-     * @param tarefas Lista de tarefas para exibir
-     * @param titulo Título da seção
-     */
     private void exibirTarefas(List<TarefaAbstrata> tarefas, String titulo) {
         UtilitariosInterface.exibirTarefas(tarefas, titulo);
     }
