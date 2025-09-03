@@ -32,7 +32,7 @@ public final class InterfaceRelatorios {
         while (executando) {
             
             System.out.println("--- 📊 RELATÓRIOS E ESTATÍSTICAS ---");
-            System.out.println("1 -> Relatório de Produtividade (Últimos 30 dias)");
+            System.out.println("1 -> Relatório Geral de Tarefas (Últimos 30 dias)");
             System.out.println("2 -> Relatório de Status das Tarefas");
             System.out.println("3 -> Relatório de Produtividade por Período");
             System.out.println("4 -> Exportar Relatório para PDF");
@@ -61,7 +61,7 @@ public final class InterfaceRelatorios {
     
     private void exibirRelatorioProdutividade() {
         
-        System.out.println("--- RELATÓRIO DE PRODUTIVIDADE ---");
+        System.out.println("--- RELATÓRIO GERAL DE TAREFAS ---");
         
         LocalDateTime dataFim = LocalDateTime.now();
         LocalDateTime dataInicio = dataFim.minusDays(30);

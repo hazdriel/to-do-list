@@ -90,6 +90,8 @@ public class NegocioUsuario {
     return repositorio.listarTodos();
   }
 
+
+
   public void alterarSenha(Usuario usuario, String senhaAtual, String novaSenha)
           throws IllegalArgumentException, UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException, SenhaTamanhoInvalidoException {
     if (usuario == null) {

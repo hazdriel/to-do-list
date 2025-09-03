@@ -5,6 +5,7 @@ import negocio.entidade.*;
 import negocio.excecao.sessao.*;
 import negocio.excecao.tarefa.*;
 import negocio.excecao.categoria.*;
+import negocio.excecao.usuario.*;
 import java.time.Period;
 import java.util.Scanner;
 import java.time.Duration;
@@ -91,8 +92,11 @@ private void exibirMenuCriacaoTarefa() {
         System.out.println("--- CRIAR TAREFA SIMPLES ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         try {
-            gerenciador.criarTarefaSimples(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria);
+            TarefaSimples tarefaCriada = gerenciador.criarTarefaSimples(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria);
             System.out.println("\n✅ Tarefa simples criada com sucesso!");
+            System.out.println("\n--- RESUMO DA TAREFA CRIADA ---");
+            FormatadorTarefas.exibirResumo(tarefaCriada);
+            System.out.println("-".repeat(40));
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
         }
@@ -108,8 +112,11 @@ private void exibirMenuCriacaoTarefa() {
         if (responsavel == null) return;
         
         try {
-            gerenciador.criarTarefaDelegavel(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel);
+            TarefaDelegavel tarefaCriada = gerenciador.criarTarefaDelegavel(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel);
             System.out.printf("\n✅ Tarefa delegável criada com sucesso para %s!\n", responsavel.getNome());
+            System.out.println("\n--- RESUMO DA TAREFA CRIADA ---");
+            FormatadorTarefas.exibirResumo(tarefaCriada);
+            System.out.println("-".repeat(40));
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
         }
@@ -120,14 +127,47 @@ private void exibirMenuCriacaoTarefa() {
         System.out.println("--- CRIAR TAREFA RECORRENTE ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
         
-        System.out.println("\nSelecione o responsável pela tarefa:");
-        Usuario responsavel = selecionarUsuario();
-        if (responsavel == null) return;
+        System.out.println("\nQuem será responsável por esta tarefa?");
+        System.out.println("1 -> Eu mesmo (não delegar)");
+        System.out.println("2 -> Delegar para outra pessoa");
+        System.out.println("0 -> Cancelar");
+        System.out.print("Escolha uma opção: ");
+        
+        int opcao = UtilitariosInterface.lerInteiro(scanner);
+        Usuario responsavel;
+        
+        switch (opcao) {
+            case 1 -> {
+                try {
+                    responsavel = gerenciador.getUsuarioLogado();
+                    System.out.println("✅ Você será o responsável pela tarefa.");
+                } catch (Exception e) {
+                    System.out.println("❌ Erro ao obter usuário logado: " + e.getMessage());
+                    return;
+                }
+            }
+            case 2 -> {
+                System.out.println("\nSelecione o responsável pela tarefa:");
+                responsavel = selecionarUsuario();
+                if (responsavel == null) return;
+            }
+            case 0 -> {
+                System.out.println("Criação cancelada.");
+                return;
+            }
+            default -> {
+                System.out.println("❌ Opção inválida. Cancelando criação.");
+                return;
+            }
+        }
         
         Period periodicidade = UtilitariosInterface.lerPeriodicidade(scanner);
         try {
-            gerenciador.criarTarefaRecorrente(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel, periodicidade);
+            TarefaRecorrente tarefaCriada = gerenciador.criarTarefaRecorrente(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel, periodicidade);
             System.out.printf("\n✅ Tarefa recorrente criada com sucesso para %s!\n", responsavel.getNome());
+            System.out.println("\n--- RESUMO DA TAREFA CRIADA ---");
+            FormatadorTarefas.exibirResumo(tarefaCriada);
+            System.out.println("-".repeat(40));
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
         }
@@ -472,17 +512,45 @@ private void removerResponsavel(Delegavel tarefa) {
     }
     
     private Usuario selecionarUsuario() {
-        List<Usuario> usuarios = gerenciador.listarUsuarios();
-        for (int i = 0; i < usuarios.size(); i++) {
-            System.out.printf("%d -> %s (%s)\n", (i + 1), usuarios.get(i).getNome(), usuarios.get(i).getEmail());
+        System.out.println("\nDigite o email ou ID do usuário para delegar:");
+        System.out.println("💡 Exemplos: usuario@email.com ou 123");
+        String emailOuId = UtilitariosInterface.lerString(scanner, "Email ou ID: ");
+        
+        if (emailOuId.isEmpty()) {
+            System.out.println("❌ Email ou ID não pode estar vazio. Operação cancelada.");
+            return null;
         }
-        System.out.print("Escolha um usuario: ");
-        int escolha = UtilitariosInterface.lerInteiro(scanner);
-        if (escolha > 0 && escolha <= usuarios.size()) {
-            return usuarios.get(escolha - 1);
+        
+        try {
+            Usuario usuario = null;
+            String entrada = emailOuId.trim();
+            
+            if (entrada.contains("@")) {
+                usuario = gerenciador.buscarUsuarioPorEmail(entrada);
+            } else {
+                usuario = gerenciador.buscarUsuarioPorId(entrada);
+            }
+            
+            if (usuario == null) {
+                System.out.println("❌ Usuário não encontrado. Verifique o email ou ID e tente novamente.");
+                return null;
+            }
+            
+            System.out.printf("✅ Usuário encontrado: %s (%s)\n", usuario.getNome(), usuario.getEmail());
+            return usuario;
+        } catch (EmailVazioException e) {
+            System.out.println("❌ Email não pode estar vazio. Tente novamente.");
+            return null;
+        } catch (UsuarioNaoEncontradoException e) {
+            System.out.println("❌ Usuário não encontrado. Verifique o email ou ID e tente novamente.");
+            return null;
+        } catch (IDUsuarioVazio e) {
+            System.out.println("❌ ID do usuário não pode estar vazio. Tente novamente.");
+            return null;
+        } catch (Exception e) {
+            System.out.println("❌ Erro inesperado ao buscar usuário: " + e.getMessage());
+            return null;
         }
-        System.out.println("❌ Opção inválida. Operação cancelada.");
-        return null;
     }
     
     private record TarefaDadosComuns(String titulo, String descricao, Prioridade prioridade, LocalDateTime prazo, Categoria categoria) {}

@@ -154,7 +154,7 @@ public class NegocioCategoria {
     }
     
     public void garantirCategoriasPadrao() throws CategoriaVaziaException {
-        String[] categoriasPadrao = {"Trabalho", "Estudo", "Pessoal"};
+        String[] categoriasPadrao = {"Trabalho", "Estudos", "Pessoal"};
         
         for (String nomeCategoria : categoriasPadrao) {
             if (!existeCategoria(nomeCategoria)) {

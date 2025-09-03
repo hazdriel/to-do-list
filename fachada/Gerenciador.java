@@ -106,25 +106,25 @@ public class Gerenciador {
     // CRIAÇÃO DE TAREFAS
     // ========================================
     
-    public void criarTarefaSimples(String titulo, String descricao, Prioridade prioridade, 
+    public TarefaSimples criarTarefaSimples(String titulo, String descricao, Prioridade prioridade, 
                                    LocalDateTime prazo, Categoria categoria) 
             throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
                    TarefaVaziaException, CriadorVazioException {
-        negocioTarefa.criarTarefaSimples(titulo, descricao, prioridade, prazo, categoria);
+        return negocioTarefa.criarTarefaSimples(titulo, descricao, prioridade, prazo, categoria);
     }
 
-    public void criarTarefaDelegavel(String titulo, String descricao, Prioridade prioridade, 
+    public TarefaDelegavel criarTarefaDelegavel(String titulo, String descricao, Prioridade prioridade, 
                                      LocalDateTime prazo, Categoria categoria, Usuario responsavel) 
             throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
                    TarefaVaziaException, CriadorVazioException, DelegacaoResponsavelVazioException {
-        negocioTarefa.criarTarefaDelegavel(titulo, descricao, prioridade, prazo, categoria, responsavel);
+        return negocioTarefa.criarTarefaDelegavel(titulo, descricao, prioridade, prazo, categoria, responsavel);
     }
 
-    public void criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
+    public TarefaRecorrente criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
                                       LocalDateTime prazo, Categoria categoria, Usuario responsavel, Period periodicidade) 
             throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
                    TarefaVaziaException, CriadorVazioException, RecorrentePeriodicidadeException, DelegacaoResponsavelVazioException {
-        negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, responsavel, periodicidade);
+        return negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, responsavel, periodicidade);
     }
 
     public void criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 
@@ -271,6 +271,8 @@ public class Gerenciador {
     public List<Usuario> listarUsuarios() {
         return negocioUsuario.listarTodos();
     }
+    
+
     
     public Usuario buscarUsuarioPorId(String id) 
             throws IDUsuarioVazio, UsuarioNaoEncontradoException {
