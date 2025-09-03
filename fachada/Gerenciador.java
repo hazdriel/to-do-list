@@ -135,6 +135,9 @@ public class Gerenciador {
     public TarefaAbstrata buscarTarefaPorId(String id) 
             throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
                    TarefaIDNaoPertenceException {
+        if (id == null || id.trim().isEmpty()) {
+            throw new TarefaIDVazioException();
+        }
         return negocioTarefa.buscarTarefaPorId(id);
     }
 
@@ -194,12 +197,18 @@ public class Gerenciador {
                    PrazoPassadoException, PrazoInvalidoException, CategoriaVaziaException, 
                    TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
                    TarefaIDNaoPertenceException, TarefaVaziaException {
+        if (id == null || id.trim().isEmpty()) {
+            throw new TarefaIDVazioException();
+        }
         negocioTarefa.atualizarTarefa(id, novoTitulo, novaDescricao, novaPrioridade, novoPrazo, novaCategoria);
     }
 
     public void removerTarefa(String id) 
             throws TarefaIDVazioException, SessaoJaInativaException, TarefaIDNaoEncontradaException, 
                    TarefaIDNaoPertenceException {
+        if (id == null || id.trim().isEmpty()) {
+            throw new TarefaIDVazioException();
+        }
         negocioTarefa.removerTarefa(id);
     }
 
@@ -253,7 +262,7 @@ public class Gerenciador {
     }
     
     public Usuario buscarUsuarioPorId(String id) 
-            throws IDUsuarioVazio {
+            throws IDUsuarioVazio, UsuarioNaoEncontradoException {
         return negocioUsuario.buscarUsuarioPorId(id);
     }
     

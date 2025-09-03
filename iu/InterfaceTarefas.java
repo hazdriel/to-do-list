@@ -658,7 +658,7 @@ private void removerResponsavel(Delegavel tarefa) {
                     } else {
                         gerenciador.pausarSessaoPomodoro(tarefa.getId());
                         System.out.println("⏸️ Sessão pausada!");
-                        try { Thread.sleep(1500); } catch (InterruptedException ie) {} // Pausa para mostrar mensagem
+                        try { Thread.sleep(1500); } catch (InterruptedException ie) {} 
                     }
                     return true; 
                 }

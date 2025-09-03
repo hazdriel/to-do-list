@@ -64,15 +64,6 @@ public class RepositorioCategorias {
     
     // MÉTODOS DE PERSISTÊNCIA
     
-    public void limparTodosAsCategorias() {
-        try {
-            categorias.clear();
-            persistencia.limparDados();
-        } catch (PersistenciaException e) {
-            System.err.println("Erro ao limpar dados de categorias: " + e.getMessage());
-        }
-    }
-    
     private void carregarDados() {
         try {
             List<Categoria> categoriasCarregadas = persistencia.carregar();

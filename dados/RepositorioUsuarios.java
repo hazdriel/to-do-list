@@ -8,8 +8,6 @@ import java.util.Optional;
 
 import negocio.entidade.Usuario;
 import negocio.entidade.GeradorId;
-
-// Repositório para gerenciar persistência de usuários
 import negocio.excecao.usuario.UsuarioVazioException;
 
 public class RepositorioUsuarios {

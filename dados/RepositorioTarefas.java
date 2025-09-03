@@ -39,10 +39,6 @@ public class RepositorioTarefas {
     public TarefaAbstrata buscarTarefaPorID(String id) {
         return tarefas.get(id);
     }
-    
-    public Optional<TarefaAbstrata> buscarPorId(String id) {
-        return Optional.ofNullable(tarefas.get(id));
-    }
 
     public boolean atualizarTarefa(TarefaAbstrata tarefaAtualizada) throws TarefaVaziaException {
         if (tarefaAtualizada == null) {
