@@ -10,6 +10,7 @@ import negocio.excecao.usuario.*;
  */
 public class NegocioUsuario {
   private final RepositorioUsuarios repositorio;
+  private final GerenciadorCodigosRecuperacao gerenciadorCodigos;
 
   public NegocioUsuario(RepositorioUsuarios repositorio) throws RepositorioUsuariosVazioException {
     if (repositorio == null) {
@@ -17,6 +18,7 @@ public class NegocioUsuario {
     }
     
     this.repositorio = repositorio;
+    this.gerenciadorCodigos = new GerenciadorCodigosRecuperacao();
   }
 
   public Usuario validarCredenciais(String email, String senha) throws EmailVazioException, SenhaVaziaException  {
@@ -122,5 +124,48 @@ public class NegocioUsuario {
     }
 
     repositorio.removerUsuario(usuario.getEmail());
+  }
+
+  public String solicitarRecuperacaoSenha(String email) 
+      throws EmailVazioException, UsuarioNaoEncontradoException {
+    
+    if (email == null || email.trim().isEmpty()) {
+      throw new EmailVazioException();
+    }
+    
+    if (!usuarioExiste(email.trim())) {
+      throw new UsuarioNaoEncontradoException(email.trim());
+    }
+    
+    return gerenciadorCodigos.gerarCodigoParaEmail(email.trim());
+  }
+
+  public void recuperarSenha(String email, String codigo, String novaSenha) 
+      throws EmailVazioException, UsuarioNaoEncontradoException, 
+             CodigoInvalidoException, SenhaVaziaException, SenhaTamanhoInvalidoException, UsuarioVazioException {
+    
+    if (email == null || email.trim().isEmpty()) {
+      throw new EmailVazioException();
+    }
+    
+    if (!usuarioExiste(email.trim())) {
+      throw new UsuarioNaoEncontradoException(email.trim());
+    }
+    
+    if (!gerenciadorCodigos.verificarCodigo(email.trim(), codigo)) {
+      throw new CodigoInvalidoException();
+    }
+    
+    if (novaSenha == null || novaSenha.trim().isEmpty()) {
+      throw new SenhaVaziaException();
+    }
+    
+    if (novaSenha.length() < 6 || novaSenha.length() > 50) {
+      throw new SenhaTamanhoInvalidoException();
+    }
+    
+    Usuario usuario = repositorio.buscarUsuario(email.trim());
+    usuario.setSenha(novaSenha);
+    repositorio.atualizarUsuario(usuario);
   }
 }

@@ -67,7 +67,7 @@ public final class UtilitariosInterface {
     }
 
     public static void limparTela() {
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 5; i++) {
             System.out.println();
         }
     }

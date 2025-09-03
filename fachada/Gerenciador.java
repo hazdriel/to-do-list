@@ -91,6 +91,17 @@ public class Gerenciador {
         negocioSessao.excluirContaUsuarioLogado(senhaConfirmacao);
     }
 
+    public String solicitarRecuperacaoSenha(String email) 
+            throws EmailVazioException, UsuarioNaoEncontradoException {
+        return negocioUsuario.solicitarRecuperacaoSenha(email);
+    }
+
+    public void recuperarSenha(String email, String codigo, String novaSenha) 
+            throws EmailVazioException, UsuarioNaoEncontradoException, 
+                   CodigoInvalidoException, SenhaVaziaException, SenhaTamanhoInvalidoException, UsuarioVazioException {
+        negocioUsuario.recuperarSenha(email, codigo, novaSenha);
+    }
+
     // ========================================
     // CRIAÇÃO DE TAREFAS
     // ========================================
