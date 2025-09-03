@@ -121,10 +121,10 @@ public class Gerenciador {
     }
 
     public void criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
-                                      LocalDateTime prazo, Categoria categoria, Period periodicidade) 
+                                      LocalDateTime prazo, Categoria categoria, Usuario responsavel, Period periodicidade) 
             throws TituloVazioException, PrioridadeVaziaException, SessaoJaInativaException, 
-                   TarefaVaziaException, CriadorVazioException, RecorrentePeriodicidadeException {
-        negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, periodicidade);
+                   TarefaVaziaException, CriadorVazioException, RecorrentePeriodicidadeException, DelegacaoResponsavelVazioException {
+        negocioTarefa.criarTarefaRecorrente(titulo, descricao, prioridade, prazo, categoria, responsavel, periodicidade);
     }
 
     public void criarTarefaTemporizada(String titulo, String descricao, Prioridade prioridade, 

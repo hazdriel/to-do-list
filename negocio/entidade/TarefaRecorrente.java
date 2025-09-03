@@ -15,16 +15,32 @@ import java.util.List;
 
 public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Delegavel {
 
+    private final Usuario responsavelOriginal;
+    private final List<Usuario> responsaveis;
+    private final List<RegistroDelegacao> historicoDelegacoes;
     private Period periodicidade;
     private LocalDateTime proximaExecucao;
 
     public TarefaRecorrente(String titulo, String descricao, LocalDateTime prazo, 
                            Prioridade prioridade, Categoria categoria,
-                           Usuario criador, Period periodicidade) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, RecorrentePeriodicidadeException {
+                           Usuario criador, Usuario responsavel, Period periodicidade) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, RecorrentePeriodicidadeException, DelegacaoResponsavelVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
+        
+        if (responsavel == null) {
+            throw new DelegacaoResponsavelVazioException();
+        }
         
         if (periodicidade == null) {
             throw new RecorrentePeriodicidadeException();
+        }
+        
+        this.responsavelOriginal = responsavel;
+        this.responsaveis = new ArrayList<>();
+        this.historicoDelegacoes = new ArrayList<>();
+        
+        this.responsaveis.add(criador);
+        if (!responsavel.equals(criador)) {
+            this.responsaveis.add(responsavel);
         }
         
         this.periodicidade = periodicidade;
@@ -43,19 +59,17 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
 
     @Override
     public Usuario getResponsavelOriginal() {
-        return getCriador(); // Criador é o responsável original
+        return responsavelOriginal;
     }
 
     @Override
     public List<Usuario> getResponsaveis() {
-        List<Usuario> responsaveis = new ArrayList<>();
-        responsaveis.add(getCriador());
-        return responsaveis;
+        return new ArrayList<>(responsaveis);
     }
 
     @Override
     public List<RegistroDelegacao> getHistoricoDelegacoes() {
-        return new ArrayList<>();
+        return new ArrayList<>(historicoDelegacoes);
     }
 
     @Override
@@ -98,7 +112,6 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
     @Override
     public void concluir() throws ConclusaoInvalidaException, RecorrenteExecucaoException, AtualizarTarefaException {
         super.concluir();
-        Recorrente.super.reagendarProximaExecucao();
     }
 
 }

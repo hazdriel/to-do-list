@@ -59,13 +59,14 @@ public class NegocioTarefa {
   }
 
   public TarefaRecorrente criarTarefaRecorrente(String titulo, String descricao, Prioridade prioridade, 
-                                                 LocalDateTime prazo, Categoria categoria, java.time.Period periodicidade)
-          throws TituloVazioException, PrioridadeVaziaException, RecorrentePeriodicidadeException, SessaoJaInativaException, TarefaVaziaException, CriadorVazioException {
+                                                 LocalDateTime prazo, Categoria categoria, Usuario responsavel, java.time.Period periodicidade)
+          throws TituloVazioException, PrioridadeVaziaException, RecorrentePeriodicidadeException, SessaoJaInativaException, TarefaVaziaException, CriadorVazioException, DelegacaoResponsavelVazioException {
     validarParametrosCriacao(titulo, prioridade);
+    validarResponsavel(responsavel);
     validarPeriodicidade(periodicidade);
     verificarSessaoAtiva();
     
-    TarefaRecorrente tarefa = new TarefaRecorrente(titulo, descricao, prazo, prioridade, categoria, sessao.getUsuarioLogado(), periodicidade);
+    TarefaRecorrente tarefa = new TarefaRecorrente(titulo, descricao, prazo, prioridade, categoria, sessao.getUsuarioLogado(), responsavel, periodicidade);
     criarTarefa(tarefa);
     return tarefa;
   }
@@ -248,6 +249,10 @@ public class NegocioTarefa {
     tarefa.concluir();
     try {
         repositorioTarefas.atualizarTarefa(tarefa);
+        
+        if (tarefa instanceof TarefaRecorrente) {
+            criarNovaTarefaRecorrente((TarefaRecorrente) tarefa);
+        }
     } catch (TarefaVaziaException e) {
         throw new TarefaVaziaException();
     }
@@ -354,6 +359,27 @@ public class NegocioTarefa {
   private void verificarSessaoAtiva() throws SessaoJaInativaException {
     if (!sessao.estaLogado()) {
       throw new SessaoJaInativaException();
+    }
+  }
+  
+  private void criarNovaTarefaRecorrente(TarefaRecorrente tarefaOriginal) throws TarefaVaziaException {
+    try {
+        LocalDateTime proximaData = LocalDateTime.now().plus(tarefaOriginal.getPeriodicidade());
+        
+        TarefaRecorrente novaTarefa = new TarefaRecorrente(
+            tarefaOriginal.getTitulo(),
+            tarefaOriginal.getDescricao(),
+            proximaData,
+            tarefaOriginal.getPrioridade(),
+            tarefaOriginal.getCategoria(),
+            tarefaOriginal.getCriador(),
+            tarefaOriginal.getResponsavelOriginal(),
+            tarefaOriginal.getPeriodicidade()
+        );
+        
+        repositorioTarefas.inserirTarefa(novaTarefa);
+    } catch (Exception e) {
+        throw new TarefaVaziaException();
     }
   }
   

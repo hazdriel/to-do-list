@@ -119,10 +119,15 @@ private void exibirMenuCriacaoTarefa() {
         
         System.out.println("--- CRIAR TAREFA RECORRENTE ---");
         TarefaDadosComuns dados = coletarDadosComunsTarefa();
+        
+        System.out.println("\nSelecione o responsável pela tarefa:");
+        Usuario responsavel = selecionarUsuario();
+        if (responsavel == null) return;
+        
         Period periodicidade = UtilitariosInterface.lerPeriodicidade(scanner);
         try {
-            gerenciador.criarTarefaRecorrente(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, periodicidade);
-            System.out.println("\n✅ Tarefa recorrente criada com sucesso!");
+            gerenciador.criarTarefaRecorrente(dados.titulo, dados.descricao, dados.prioridade, dados.prazo, dados.categoria, responsavel, periodicidade);
+            System.out.printf("\n✅ Tarefa recorrente criada com sucesso para %s!\n", responsavel.getNome());
         } catch (Exception e) {
             System.out.println("\n❌ Erro ao criar tarefa: " + e.getMessage());
         }
