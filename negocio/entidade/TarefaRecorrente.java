@@ -23,7 +23,7 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
 
     public TarefaRecorrente(String titulo, String descricao, LocalDateTime prazo, 
                            Prioridade prioridade, Categoria categoria,
-                           Usuario criador, Usuario responsavel, Period periodicidade) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, RecorrentePeriodicidadeException, DelegacaoResponsavelVazioException {
+                           Usuario criador, Usuario responsavel, Period periodicidade) throws CriadorVazioException, TituloVazioException, RecorrentePeriodicidadeException, DelegacaoResponsavelVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (responsavel == null) {
@@ -97,7 +97,7 @@ public class TarefaRecorrente extends TarefaAbstrata implements Recorrente, Dele
 
     @Override
     public void setPeriodicidade(Period periodicidade)
-            throws IllegalArgumentException, IllegalStateException, RecorrentePeriodicidadeException, AtualizarTarefaException {
+            throws RecorrentePeriodicidadeException, AtualizarTarefaException {
         if (periodicidade == null) {
             throw new RecorrentePeriodicidadeException();
         }

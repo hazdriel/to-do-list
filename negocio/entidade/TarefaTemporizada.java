@@ -35,7 +35,7 @@ public class TarefaTemporizada extends TarefaAbstrata implements Temporizada, Co
     public TarefaTemporizada(String titulo, String descricao, LocalDateTime prazo, 
                             Prioridade prioridade, Categoria categoria, Usuario criador,
                             Duration duracaoSessao, Duration duracaoPausa, int totalSessoes) 
-            throws IllegalArgumentException, TituloVazioException, CriadorVazioException {
+            throws TituloVazioException, CriadorVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (duracaoSessao == null || duracaoSessao.isNegative() || 

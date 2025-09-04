@@ -16,7 +16,7 @@ public class Usuario implements Serializable {
   private static final Pattern EMAIL_PATTERN = 
     Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
-  public Usuario(String nome, String email, String senha) throws IllegalArgumentException, EmailVazioException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, SenhaVaziaException, NomeVazioException, EmailFormatoInvalidoException {
+  public Usuario(String nome, String email, String senha) throws  EmailVazioException, SenhaTamanhoInvalidoException, NomeApenasLetrasException, NomeTamanhoInvalidoException, SenhaVaziaException, NomeVazioException, EmailFormatoInvalidoException {
     validarParametrosObrigatorios(nome, email, senha);
     this.id = GeradorId.gerarIdUsuario();
     this.nome = nome.trim();
@@ -24,7 +24,7 @@ public class Usuario implements Serializable {
     this.senha = senha;
   }
 
-  private void validarParametrosObrigatorios(String nome, String email, String senha) throws IllegalArgumentException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException, EmailVazioException, EmailFormatoInvalidoException, SenhaTamanhoInvalidoException, SenhaVaziaException {
+  private void validarParametrosObrigatorios(String nome, String email, String senha) throws NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException, EmailVazioException, EmailFormatoInvalidoException, SenhaTamanhoInvalidoException, SenhaVaziaException {
     validarNome(nome);
     validarEmail(email);
     validarSenha(senha);
@@ -79,17 +79,17 @@ public class Usuario implements Serializable {
     return senha; 
   }
   
-  public void setNome(String nome) throws IllegalArgumentException, NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException {
+  public void setNome(String nome) throws NomeApenasLetrasException, NomeTamanhoInvalidoException, NomeVazioException {
     validarNome(nome);
     this.nome = nome.trim();
   }
   
-  public void setEmail(String email) throws IllegalArgumentException, EmailVazioException, EmailFormatoInvalidoException {
+  public void setEmail(String email) throws EmailVazioException, EmailFormatoInvalidoException {
     validarEmail(email);
     this.email = email.trim().toLowerCase();
   }
   
-  public void setSenha(String senha) throws IllegalArgumentException, SenhaTamanhoInvalidoException, SenhaVaziaException {
+  public void setSenha(String senha) throws SenhaTamanhoInvalidoException, SenhaVaziaException {
     validarSenha(senha);
     this.senha = senha;
   }

@@ -20,7 +20,7 @@ public class TarefaDelegavel extends TarefaAbstrata implements Delegavel {
 
     public TarefaDelegavel(String titulo, String descricao, LocalDateTime prazo, 
                            Prioridade prioridade, Categoria categoria, 
-                           Usuario criador, Usuario responsavel) throws IllegalArgumentException, CriadorVazioException, TituloVazioException, DelegacaoResponsavelVazioException {
+                           Usuario criador, Usuario responsavel) throws CriadorVazioException, TituloVazioException, DelegacaoResponsavelVazioException {
         super(titulo, descricao, prazo, prioridade, categoria, criador);
         
         if (responsavel == null) {
