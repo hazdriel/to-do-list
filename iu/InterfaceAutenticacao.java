@@ -17,7 +17,6 @@ public final class InterfaceAutenticacao {
         this.gerenciador = gerenciador;
     }
     
-    
     public boolean exibirTelaLogin() {
         while (true) { 
             System.out.println("===================================");
@@ -66,14 +65,12 @@ public final class InterfaceAutenticacao {
                 System.out.println("\n❌ Falha no login. Email ou senha incorretos.");
             }
         } catch (LoginJaAtivoException e) {
-            System.out.println("\n❌ Você já está logado. Faça logout primeiro.");
+            System.out.println("\n❌ Erro inesperado no login: " + e.getMessage());
         } catch (EmailVazioException e) {
-            System.out.println("\n❌ Email não pode estar vazio. Tente novamente.");
+            System.out.println("\n❌ Erro inesperado no login: " + e.getMessage());
         } catch (SenhaVaziaException e) {
-            System.out.println("\n❌ Senha não pode estar vazia. Tente novamente.");
+            System.out.println("\n❌ Erro inesperado no login: " + e.getMessage());
         } catch (UsuarioVazioException e) {
-            System.out.println("\n❌ Erro interno do sistema. Tente novamente.");
-        } catch (Exception e) {
             System.out.println("\n❌ Erro inesperado no login: " + e.getMessage());
         }
     }
@@ -92,26 +89,9 @@ public final class InterfaceAutenticacao {
         try {
             gerenciador.cadastrarUsuario(nome, email, senha);
             System.out.println("\n✅ Usuário cadastrado com sucesso! Agora, por favor, faça o login.");
-        } catch (NomeVazioException e) {
-            System.out.println("\n❌ Nome não pode estar vazio. Tente novamente.");
-        } catch (EmailVazioException e) {
-            System.out.println("\n❌ Email não pode estar vazio. Tente novamente.");
-        } catch (SenhaVaziaException e) {
-            System.out.println("\n❌ Senha não pode estar vazia. Tente novamente.");
-        } catch (UsuarioExistenteException e) {
-            System.out.println("\n❌ Este email já está cadastrado. Tente fazer login ou use outro email.");
-        } catch (SenhaTamanhoInvalidoException e) {
-            System.out.println("\n❌ Senha deve ter pelo menos 6 caracteres. Tente novamente.");
-        } catch (NomeApenasLetrasException e) {
-            System.out.println("\n❌ Nome deve conter apenas letras e espaços. Tente novamente.");
-        } catch (NomeTamanhoInvalidoException e) {
-            System.out.println("\n❌ Nome deve ter entre 2 e 50 caracteres. Tente novamente.");
-        } catch (EmailFormatoInvalidoException e) {
-            System.out.println("\n❌ Formato de email inválido. Tente novamente.");
-        } catch (UsuarioVazioException e) {
-            System.out.println("\n❌ Erro interno do sistema. Tente novamente.");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro inesperado: " + e.getMessage());
+        } catch (NomeVazioException | EmailVazioException | SenhaVaziaException | UsuarioExistenteException | SenhaTamanhoInvalidoException |
+                 NomeApenasLetrasException | NomeTamanhoInvalidoException | EmailFormatoInvalidoException | UsuarioVazioException e) {
+            System.out.println("❌ Erro ao realizar cadastro: " + e.getMessage());
         }
     }
 
@@ -143,25 +123,22 @@ public final class InterfaceAutenticacao {
             System.out.println(" Agora você pode fazer login com sua nova senha");
             
         } catch (EmailVazioException e) {
-            System.out.println("❌ Email não pode estar vazio.");
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         } catch (UsuarioNaoEncontradoException e) {
-            System.out.println("❌ Email não encontrado no sistema.");
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         } catch (CodigoInvalidoException e) {
-            System.out.println("❌ Código inválido ou expirado.");
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         } catch (SenhaVaziaException e) {
-            System.out.println("❌ Senha não pode estar vazia.");
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         } catch (SenhaTamanhoInvalidoException e) {
-            System.out.println("❌ Senha deve ter entre 6 e 50 caracteres.");
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         } catch (UsuarioVazioException e) {
-            System.out.println("❌ Erro interno do sistema. Tente novamente.");
-        } catch (Exception e) {
-            System.out.println("❌ Erro inesperado: " + e.getMessage());
+            System.out.println("❌ Erro ao recuperar senha: " + e.getMessage());
         }
     }
     
 
     public void realizarLogout() {
-        
         System.out.println("--- LOGOUT ---");
         System.out.println("🚪 A sua sessão está sendo encerrada...");
         
@@ -169,9 +146,7 @@ public final class InterfaceAutenticacao {
             gerenciador.fazerLogout();
             System.out.println("\n✅ Sessão encerrada com sucesso!");
         } catch (SessaoJaInativaException e) {
-            System.out.println("\n❌ Você não está logado. Não há sessão para encerrar.");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro inesperado ao encerrar sessão: " + e.getMessage());
+            System.out.println("❌ Erro ao realizar logout: " + e.getMessage());
         }
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
@@ -184,8 +159,6 @@ public final class InterfaceAutenticacao {
         try {
             return gerenciador.getUsuarioLogado();
         } catch (SessaoJaInativaException e) {
-            return null;
-        } catch (Exception e) {
             return null;
         }
     }

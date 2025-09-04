@@ -25,7 +25,7 @@ public class NegocioSessao {
         this.negocioUsuario = negocioUsuario;
     }
     
-    public Usuario getUsuarioLogado() throws IllegalStateException, SessaoJaInativaException {
+    public Usuario getUsuarioLogado() throws SessaoJaInativaException {
         if (!estaLogado()) {
             throw new SessaoJaInativaException();
         }

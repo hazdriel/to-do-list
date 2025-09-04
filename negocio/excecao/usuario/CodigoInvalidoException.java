@@ -4,6 +4,6 @@ public class CodigoInvalidoException extends UsuarioException {
     private static final long serialVersionUID = 1L;
 
     public CodigoInvalidoException() {
-        super("Código de verificação inválido ou expirado. Tente novamente.");
+        super("o código de verificação inválido ou expirado. Por favor, tente novamente.");
     }
 }

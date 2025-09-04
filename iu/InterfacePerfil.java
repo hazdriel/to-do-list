@@ -2,6 +2,12 @@ package iu;
 
 import fachada.Gerenciador;
 import negocio.entidade.Usuario;
+import negocio.excecao.sessao.SessaoJaInativaException;
+import negocio.excecao.usuario.SenhaIncorretaException;
+import negocio.excecao.usuario.SenhaTamanhoInvalidoException;
+import negocio.excecao.usuario.SenhaVaziaException;
+import negocio.excecao.usuario.UsuarioVazioException;
+
 import java.util.Scanner;
 
 
@@ -90,10 +96,17 @@ public class InterfacePerfil {
         try {
             gerenciador.alterarSenha(senhaAtual, novaSenha);
             System.out.println("✅ Senha alterada com sucesso!");
-        } catch (Exception e) {
+        } catch (SenhaTamanhoInvalidoException e) {
+            System.out.println("❌ Erro ao alterar senha: " + e.getMessage());
+        } catch (SessaoJaInativaException e) {
+            System.out.println("❌ Erro ao alterar senha: " + e.getMessage());
+        } catch (SenhaIncorretaException e) {
+            System.out.println("❌ Erro ao alterar senha: " + e.getMessage());
+        } catch (SenhaVaziaException e) {
+            System.out.println("❌ Erro ao alterar senha: " + e.getMessage());
+        } catch (UsuarioVazioException e) {
             System.out.println("❌ Erro ao alterar senha: " + e.getMessage());
         }
-        
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }
     
@@ -123,7 +136,7 @@ public class InterfacePerfil {
             System.out.println("👋 Você será redirecionado para a tela de login.");
             UtilitariosInterface.pressioneEnterParaContinuar(scanner);
             return true; 
-        } catch (Exception e) {
+        } catch (SessaoJaInativaException | SenhaIncorretaException | SenhaVaziaException | UsuarioVazioException e) {
             System.out.println("❌ Erro ao excluir conta: " + e.getMessage());
             UtilitariosInterface.pressioneEnterParaContinuar(scanner);
             return false;

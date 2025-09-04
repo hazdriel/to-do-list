@@ -54,9 +54,7 @@ public final class InterfaceCategorias {
     
 
     private void exibirCategoriasExistentes() {
-        
         System.out.println("--- CATEGORIAS EXISTENTES ---");
-        
         try {
             List<Categoria> categorias = gerenciador.listarCategorias();
             
@@ -72,9 +70,7 @@ public final class InterfaceCategorias {
         
         System.out.printf("\nTotal: %d categoria(s) encontradas.\n", categorias.size());
         } catch (SessaoJaInativaException e) {
-            System.out.println("\n❌ Você precisa estar logado para listar categorias.");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro inesperado ao listar categorias: " + e.getMessage());
+            System.out.println("❌ Erro ao exibir categorias: " + e.getMessage());
         }
     }
     
@@ -87,10 +83,8 @@ public final class InterfaceCategorias {
             System.out.printf("Criador(a): %s\n", categoria.getCriador().getNome());
         }
     }
-    
 
     private void criarNovaCategoria() {
-        
         System.out.println("--- CRIAR NOVA CATEGORIA ---");
         
         String nome = UtilitariosInterface.lerString(scanner, "Digite o nome da nova categoria: ");
@@ -104,18 +98,15 @@ public final class InterfaceCategorias {
             Categoria novaCategoria = gerenciador.criarCategoria(nome);
             System.out.println("\n✅ Categoria '" + novaCategoria.getNome() + "' criada com sucesso!");
         } catch (CategoriaVaziaException e) {
-            System.out.println("\n❌ Nome da categoria não pode estar vazio. Tente novamente.");
+            System.out.println("❌ Erro ao criar categoria: " + e.getMessage());
         } catch (SessaoJaInativaException e) {
-            System.out.println("\n❌ Você precisa estar logado para criar categorias.");
+            System.out.println("❌ Erro ao criar categoria: " + e.getMessage());
         } catch (CriadorVazioException e) {
-            System.out.println("\n❌ Erro interno do sistema. Tente novamente.");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro inesperado ao criar categoria: " + e.getMessage());
+            System.out.println("❌ Erro ao criar categoria: " + e.getMessage());
         }
     }
     
     private void removerCategoria() {
-        
         System.out.println("--- REMOVER CATEGORIA ---");
         try {
             Usuario utilizadorAtual = gerenciador.getUsuarioLogado();
@@ -151,19 +142,17 @@ public final class InterfaceCategorias {
                     gerenciador.removerCategoria(categoriaParaRemover.getNome());
                     System.out.println("\n✅ Categoria removida com sucesso!");
                 } catch (CategoriaVaziaException e) {
-                    System.out.println("\n❌ Nome da categoria não pode estar vazio.");
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 } catch (CategoriaNaoEncontrada e) {
-                    System.out.println("\n❌ Categoria não encontrada.");
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 } catch (CategoriaNaoPertenceException e) {
-                    System.out.println("\n❌ Você não tem permissão para remover esta categoria.");
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 } catch (CategoriaAtivaRemocaoException e) {
-                    System.out.println("\n❌ Não é possível remover categoria que está sendo usada por tarefas.");
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 } catch (SessaoJaInativaException e) {
-                    System.out.println("\n❌ Você precisa estar logado para remover categorias.");
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 } catch (RepositorioCategoriaRemocaoException e) {
-                    System.out.println("\n❌ Erro interno do sistema ao remover categoria.");
-                } catch (Exception e) {
-                    System.out.println("\n❌ Erro inesperado ao remover categoria: " + e.getMessage());
+                    System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
                 }
             } else {
                 System.out.println("\nOperação cancelada.");
@@ -172,9 +161,7 @@ public final class InterfaceCategorias {
             System.out.println("❌ Opção inválida.");
         }
         } catch (SessaoJaInativaException e) {
-            System.out.println("\n❌ Você precisa estar logado para remover categorias.");
-        } catch (Exception e) {
-            System.out.println("\n❌ Erro inesperado ao remover categoria: " + e.getMessage());
+            System.out.println("❌ Erro ao remover categoria: " + e.getMessage());
         }
         UtilitariosInterface.pressioneEnterParaContinuar(scanner);
     }

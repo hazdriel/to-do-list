@@ -6,7 +6,7 @@ public class DelegacaoResponsavelInvalidoException extends TarefaException  {
     private static final long serialVersionUID = 1L;
 
     public DelegacaoResponsavelInvalidoException(Usuario responsavelAtual){
-        super("O usuário "+ responsavelAtual +" já é responsável por está tarefa. Por favor, preencha um usuário delegavél distinto.");
+        super("o usuário "+ responsavelAtual +" já é responsável por está tarefa. Por favor, preencha um usuário delegavél distinto.");
     }
 
 }

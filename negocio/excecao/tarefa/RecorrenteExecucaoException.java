@@ -4,7 +4,7 @@ public class RecorrenteExecucaoException extends TarefaException  {
     private static final long serialVersionUID = 1L;
 
     public RecorrenteExecucaoException() {
-        super("A próxima execução não pode ser vazia ou nula. Por favor, preencha-a.");;
+        super("a próxima execução não pode ser vazia ou nula. Por favor, preencha-a.");;
     }
 
 }

@@ -385,7 +385,7 @@ public class NegocioTarefa {
   
   // CONTROLE DE SESSÕES POMODORO
   
-  public List<TarefaTemporizada> listarTarefasTemporizadas() throws IllegalStateException {
+  public List<TarefaTemporizada> listarTarefasTemporizadas() {
     try {
         verificarSessaoAtiva();
         List<TarefaAbstrata> todasTarefas = repositorioTarefas.listarTarefasPorUsuario(sessao.getUsuarioLogado());
@@ -407,7 +407,7 @@ public class NegocioTarefa {
     }
   }
   
-  public void iniciarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+  public void iniciarSessaoPomodoro(String idTarefa)  {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.iniciarSessao();
     try {
@@ -417,7 +417,7 @@ public class NegocioTarefa {
     }
   }
   
-  public void pausarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+  public void pausarSessaoPomodoro(String idTarefa) {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.pausarSessao();
     try {
@@ -427,7 +427,7 @@ public class NegocioTarefa {
     }
   }
   
-  public void retomarSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+  public void retomarSessaoPomodoro(String idTarefa) {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.retomarSessao();
     try {
@@ -437,7 +437,7 @@ public class NegocioTarefa {
     }
   }
   
-  public void concluirSessaoPomodoro(String idTarefa) throws IllegalArgumentException, IllegalStateException {
+  public void concluirSessaoPomodoro(String idTarefa) {
     TarefaTemporizada tarefa = validarTarefaTemporizada(idTarefa);
     tarefa.concluirSessao();
     try {
@@ -447,7 +447,7 @@ public class NegocioTarefa {
     }
   }
   
-  private TarefaTemporizada validarTarefaTemporizada(String id) throws IllegalArgumentException, IllegalStateException {
+  private TarefaTemporizada validarTarefaTemporizada(String id) {
     try {
         TarefaAbstrata tarefa = validarTarefaDoUsuario(id);
     

@@ -6,7 +6,7 @@ public class DelegacaoRemoverResponsavelException extends TarefaException  {
     private static final long serialVersionUID = 1L;
 
     public DelegacaoRemoverResponsavelException(Usuario responsavel) {
-        super("O "+ responsavel+" é o responsável original. Somente os tercerizados podem ser removidos. Por favor, verifique os responsaveis.");
+        super("o "+ responsavel+" é o responsável original. Somente os tercerizados podem ser removidos. Por favor, verifique os responsaveis.");
     }
 
 }

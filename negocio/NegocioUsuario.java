@@ -93,7 +93,7 @@ public class NegocioUsuario {
 
 
   public void alterarSenha(Usuario usuario, String senhaAtual, String novaSenha)
-          throws IllegalArgumentException, UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException, SenhaTamanhoInvalidoException {
+          throws UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException, SenhaTamanhoInvalidoException {
     if (usuario == null) {
       throw new UsuarioVazioException();
     }
@@ -113,7 +113,7 @@ public class NegocioUsuario {
   }
 
   public void excluirConta(Usuario usuario, String senhaConfirmacao)
-          throws IllegalArgumentException, UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException {
+          throws UsuarioVazioException, SenhaVaziaException, SenhaIncorretaException {
     if (usuario == null) {
       throw new UsuarioVazioException();
     }

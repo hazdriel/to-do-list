@@ -73,7 +73,6 @@ public final class FormatadorTarefas {
         if (tarefa.getPrazo() != null) {
             System.out.printf("Prazo Final:     %s\n", formatarDataHora(tarefa.getPrazo()));
         }
-        
         if (tarefa.estaAtrasada()) {
             System.out.println("\n⚠️  ATENÇÃO: TAREFA ATRASADA!");
         }
@@ -94,7 +93,7 @@ public final class FormatadorTarefas {
     }
 
     
-            public static void exibirListaAtrasadas(List<TarefaAbstrata> tarefasAtrasadas) {
+    public static void exibirListaAtrasadas(List<TarefaAbstrata> tarefasAtrasadas) {
         if (tarefasAtrasadas == null || tarefasAtrasadas.isEmpty()) {
             System.out.println("\n🎉 Nenhuma tarefa atrasada. Bom trabalho!");
             return;

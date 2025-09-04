@@ -26,10 +26,10 @@ public final class UtilitariosInterface {
                 if (!input.isEmpty()) {
                     return Integer.parseInt(input);
                 } else {
-                    System.out.println("❌ Entrada vazia. Por favor, digite um número inteiro.");
+                    System.out.println("❌ Valor vazio. Por favor, digite um número inteiro.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("❌ Entrada inválida. Por favor, digite apenas um número inteiro.");
+                System.out.println("❌ Valor inválido. Por favor, digite apenas um número inteiro.");
             }
         }
     }
@@ -48,7 +48,7 @@ public final class UtilitariosInterface {
             try {
                 return Prioridade.valueOf(entrada);
             } catch (IllegalArgumentException e) {
-                System.out.println("❌ Prioridade inválida. Tente novamente.");
+                System.out.println("❌ Prioridade inválida. Por favor, digite alguma das opções das listadas.");
             }
         }
     }
@@ -61,7 +61,7 @@ public final class UtilitariosInterface {
             try {
                 return LocalDateTime.parse(entrada, FORMATO_DATA_HORA_ENTRADA);
             } catch (DateTimeParseException e) {
-                System.out.println("❌ Formato de data e hora inválido. Tente novamente.");
+                System.out.println("❌ Data inválida. Por favor, digite no formato de data e hora mostrado.");
             }
         }
     }
@@ -127,7 +127,7 @@ public static Period lerPeriodicidade(Scanner scanner) {
             case "MENSAL":
                 return Period.ofMonths(1);
             default:
-                System.out.println("❌ Periodicidade inválida. Por favor, escolha uma das opções listadas.");
+                System.out.println("❌ Periodicidade inválida. Por favor, digite alguma opção das listadas.");
         }
     }
 }
@@ -140,10 +140,10 @@ public static Duration lerDuracao(Scanner scanner) {
                 if (horas > 0) {
                     return Duration.ofHours(horas);
                 } else {
-                    System.out.println("❌ A duração deve ser um número positivo. Tente novamente.");
+                    System.out.println("❌ Duração inválida. Por favor, digite um valor positivo.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("❌ Entrada inválida. Por favor, digite apenas o número de horas.");
+                System.out.println("❌ Duração inválida. Por favor, digite apenas o número de horas.");
             }
         }
     }
@@ -162,10 +162,10 @@ public static Duration lerDuracao(Scanner scanner) {
                 if (minutos >= minMinutos && minutos <= maxMinutos) {
                     return Duration.ofMinutes(minutos);
                 } else {
-                    System.out.printf("❌ Duração deve ser entre %d e %d minutos.\n", minMinutos, maxMinutos);
+                    System.out.printf("❌ Duração inválida. Por favor, digite um valor entre %d e %d minutos.\n", minMinutos, maxMinutos);
                 }
             } catch (NumberFormatException e) {
-                System.out.println("❌ Digite um número válido.");
+                System.out.println("❌ Duração inválida. Por favor, digite apenas o número de horas.");
             }
         }
     }

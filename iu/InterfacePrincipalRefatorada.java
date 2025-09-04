@@ -33,7 +33,6 @@ public final class InterfacePrincipalRefatorada {
     }
     
     public void executar() {
-    
         while (executando) {
             if (!gerenciador.estaLogado()) {
                 boolean continuar = interfaceAutenticacao.exibirTelaLogin();
@@ -44,16 +43,13 @@ public final class InterfacePrincipalRefatorada {
                 exibirMenuPrincipal();
             }
         }
-        
-        
+
         System.out.println("👋 Obrigado por usar o Lúmina! Até a próxima.");
         scanner.close();
     }
     
     private void exibirMenuPrincipal() {
-        
         exibirCabecalhoDoMenu();
-        
         System.out.println("1 -> 📝 Gerenciar Tarefas");
         System.out.println("2 -> 🔍 Visualizar Tarefas");
         System.out.println("3 -> 📂 Gerenciar Categorias");
@@ -77,9 +73,7 @@ public final class InterfacePrincipalRefatorada {
             Usuario usuarioLogado = gerenciador.getUsuarioLogado();
             System.out.printf("👤 Usuario: %s (%s)\n", usuarioLogado.getNome(), usuarioLogado.getEmail());
         } catch (SessaoJaInativaException e) {
-            System.out.println("👤 Usuario: Não logado");
-        } catch (Exception e) {
-            System.out.println("👤 Usuario: Erro ao obter dados");
+            System.out.println("❌ Erro ao visualizar menu: " + e.getMessage());
         }
         System.out.println("-".repeat(50));
     }
